@@ -70,7 +70,7 @@ async function ensurePg(): Promise<void> {
     "Get-CimInstance Win32_Process -Filter \"Name='postgres.exe'\" | Where-Object { $_.CommandLine -like '*qaveno-pgtest*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }"], { stdio: 'ignore' });
   fs.rmSync(DATA_DIR, { recursive: true, force: true });
   // trust auth locally; tests only
-  sh(path.join(BIN, 'initdb.exe'), ['-D', DATA_DIR, '-U', 'postgres', '-A', 'trust', '-E', 'UTF8']);
+  sh(path.join(BIN, 'initdb.exe'), ['-D', DATA_DIR, '-U', 'postgres', '-A', 'trust', '-E', 'UTF8', '--no-locale']);
   postgresProc = spawn(path.join(BIN, 'postgres.exe'), ['-D', DATA_DIR, '-p', String(PORT), '-F', '-c', 'fsync=off'], {
     stdio: 'ignore',
   });
