@@ -146,7 +146,7 @@ function handleLogout() {
 }
 
 app.whenReady().then(() => {
-  const dbPath = path.join(app.getAppPath(), 'data', 'pos.db');
+  const dbPath = path.join(app.getPath('userData'), 'data', 'pos.db');
   db.init(dbPath);
   auth.init();
   license.init(db.getDb ? db.getDb() : null, app.getPath('userData'));
