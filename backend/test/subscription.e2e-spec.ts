@@ -224,13 +224,12 @@ describe('subscription & billing: plans, lifecycle, limits, enforcement (real Po
       `INSERT INTO user_branches (user_id, branch_id, is_primary) VALUES ($1,$2,1)`,
       [userId, brRows[0].id],
     );
-    // Sign JWT directly for user2
-    const jwt = require('jsonwebtoken');
-    const token2 = jwt.sign(
-      { sub: userId, username: 'user2', role: 'owner' },
-      'test-secret-test-secret-test-secret-123',
-      { issuer: 'qaveno-backend', expiresIn: '1h' },
-    );
+const token2 = await ctx.app
+  .get(require('@nestjs/jwt').JwtService)
+  .signAsync(
+    { sub: userId, username: 'user2', role: 'owner' },
+    { expiresIn: '1h' },
+  );
     // Query billing as user2 with org2
     const res2 = await ctx.api().get('/api/v1/billing/subscription')
       .set('Authorization', `Bearer ${token2}`)
