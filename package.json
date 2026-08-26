@@ -1,0 +1,30 @@
+{
+  "name": "qaveno",
+  "version": "1.0.0",
+  "description": "QAVENO — Premium POS & Inventory Management System",
+  "main": "src/main/main.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64",
+    "build:dir": "electron-builder --win --x64 --dir",
+    "pack": "electron-builder --dir",
+    "smoke-test": "node tests/smoke.js",
+    "auth-test": "node tests/auth.test.js",
+    "suppliers-test": "node tests/suppliers.test.js",
+    "purchases-test": "node tests/purchases.test.js",
+    "inventory-test": "node tests/inventory.test.js",
+    "branches-test": "node tests/branches.test.js",
+    "transfers-test": "node tests/transfers.test.js",
+    "test": "node tests/smoke.js && node tests/auth.test.js && node tests/suppliers.test.js && node tests/purchases.test.js && node tests/inventory.test.js && node tests/branches.test.js && node tests/transfers.test.js && node tests/sync.test.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^43.4.1",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  }
+}

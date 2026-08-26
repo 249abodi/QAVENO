@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'" />
+  <title data-i18n="app.cashierTitle">نقطة البيع — الكاشير</title>
+  <!-- Shared design system -->
+  <link rel="stylesheet" href="../shared/tokens.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img id="brandLogo" class="brand-logo hidden" alt="" />
+      <span id="logoEmoji" data-icon="cart"></span>
+      <span id="storeName">متجري</span>
+      <span id="branchChip" class="tag hidden"></span>
+      <span class="tag" data-i18n="cashier.tag">كاشير</span>
+    </div>
+    <div class="search-wrap">
+      <input id="searchInput" type="text" autocomplete="off" data-i18n-placeholder="cashier.searchPh"
+             placeholder="امسح الباركود أو ابحث بالاسم ثم اضغط Enter…" />
+      <button id="clearSearchBtn" data-i18n-title="cashier.clear" title="مسح"></button>
+    </div>
+      <div class="topbar-meta">
+        <span class="badge" id="taxBadge">ضريبة 15%</span>
+        <button id="openAdminBtn" class="btn ghost"><span data-icon="settings"></span><span data-i18n="common.adminPanel">لوحة الإدارة</span></button>
+        <div id="userChip" class="user-chip hidden">
+          <span data-icon="user"></span>
+          <span id="userName"></span>
+        </div>
+        <button id="logoutBtn" class="icon-btn" data-i18n-title="common.logout" title="تسجيل الخروج"></button>
+        <button id="themeToggle" class="icon-btn" data-i18n-title="ui.toggleTheme" title="تبديل الوضع الليلي/النهاري"></button>
+      <button id="langToggle" class="icon-btn lang-btn" data-i18n-title="ui.toggleLang" title="تغيير اللغة">EN</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="products-pane">
+      <div class="pane-title"><span data-i18n="products.title">المنتجات</span> <small id="productsCount"></small></div>
+      <div id="productGrid" class="grid"></div>
+    </section>
+
+    <aside class="cart-pane">
+        <div class="pane-title"><span data-i18n="cart.title">السلة</span> <span id="cartCount" class="pill">0</span></div>
+
+      <div id="cartItems" class="cart-items">
+        <div class="empty-cart" id="emptyCart">السلة فارغة — انقر على منتج لإضافته</div>
+      </div>
+
+      <div class="cart-summary">
+        <div class="row discount-row">
+          <label for="discountInput" data-i18n="cart.discount">خصم:</label>
+          <input id="discountInput" type="number" min="0" step="0.01" value="0" />
+          <span id="discountCurrency" class="muted"></span>
+        </div>
+        <div class="row"><span data-i18n="cart.subtotal">المجموع الفرعي</span><b id="subtotalEl">0.00</b></div>
+        <div class="row tax"><span><span data-i18n="cart.tax">الضريبة</span> (<span id="taxRateLabel">15</span>%)</span><b id="taxEl">0.00</b></div>
+        <div class="row total"><span data-i18n="cart.total">الإجمالي</span><b><span id="totalEl">0.00</span> <span class="cur"></span></b></div>
+
+        <div class="pay-methods">
+          <button class="pm active" data-pm="cash" data-i18n="pay.cash">نقداً</button>
+          <button class="pm" data-pm="card" data-i18n="pay.card">بطاقة</button>
+        </div>
+
+        <div class="row paid-row">
+          <label for="paidInput" data-i18n="cart.paid">المدفوع:</label>
+          <input id="paidInput" type="number" min="0" step="0.01" placeholder="0.00" />
+          <div class="change-box"><span data-i18n="cart.change">الباقي</span><b id="changeEl">0.00</b></div>
+        </div>
+
+        <button id="checkoutBtn" class="checkout-btn" disabled data-i18n="cart.checkout">إتمام البيع (F9)</button>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Receipt modal -->
+  <div class="modal hidden" id="receiptModal">
+    <div class="modal-card receipt">
+      <div class="receipt-head">
+        <h2 id="rStoreName">متجري</h2>
+        <div class="muted" id="rInvoiceNo"></div>
+        <div class="muted" id="rDate"></div>
+      </div>
+      <table class="receipt-table">
+        <thead><tr><th data-i18n="receipt.product">المنتج</th><th data-i18n="receipt.qty">كمية</th><th data-i18n="receipt.price">سعر</th><th data-i18n="receipt.lineTotal">إجمالي</th></tr></thead>
+        <tbody id="rItems"></tbody>
+      </table>
+      <div class="receipt-totals">
+        <div class="row"><span data-i18n="cart.subtotal">المجموع الفرعي</span><b id="rSubtotal"></b></div>
+        <div class="row"><span data-i18n="cart.tax">الضريبة</span><b id="rTax"></b></div>
+        <div class="row" id="rDiscountRow"><span data-i18n="tbl.discount">الخصم</span><b id="rDiscount"></b></div>
+        <div class="row total"><span data-i18n="receipt.paidRow">المدفوع</span><b id="rPaid"></b></div>
+        <div class="row"><span data-i18n="cart.change">الباقي</span><b id="rChange"></b></div>
+      </div>
+      <div class="receipt-actions">
+        <button id="printReceiptBtn" class="btn ghost"><span data-icon="print"></span><span data-i18n="common.print">طباعة</span></button>
+        <button id="newSaleBtn" class="btn primary" data-i18n="receipt.newSale">فاتورة جديدة (Esc)</button>
+      </div>
+      <button id="openPdfBtn" class="btn pdf-btn" disabled data-i18n="receipt.openPdf">فتح الفاتورة PDF</button>
+    </div>
+  </div>
+
+  <div id="toasts" class="toasts"></div>
+  <script src="../shared/i18n.js"></script>
+  <script src="../shared/icons.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

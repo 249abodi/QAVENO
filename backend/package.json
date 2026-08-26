@@ -1,0 +1,83 @@
+{
+  "name": "qaveno-backend",
+  "version": "1.0.0",
+  "description": "QAVENO cloud backend — NestJS + PostgreSQL + TypeORM",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/src/main.js",
+    "start:dev": "ts-node src/main.ts",
+    "migration:run": "typeorm migration:run -d src/database/data-source.ts",
+    "migration:revert": "typeorm migration:revert -d src/database/data-source.ts",
+    "import:snapshot": "ts-node src/tools/import-sqlite.ts",
+    "test:importer": "ts-node --transpile-only test/importer-check.ts",
+    "test:unit": "jest -w 12 --silent --testMatch \"**/*.spec.ts\"",
+    "test:e2e": "jest --runInBand --forceExit --silent --testMatch \"**/*.e2e-spec.ts\"",
+    "test": "npm run test:e2e"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "rootDir": ".",
+    "roots": [
+      "<rootDir>/src",
+      "<rootDir>/test"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "tsconfig": "<rootDir>/tsconfig.json",
+          "isolatedModules": true
+        }
+      ]
+    },
+    "testTimeout": 90000,
+    "clearMocks": true
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.6",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.1.6",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/platform-express": "^11.1.6",
+    "@nestjs/platform-socket.io": "^11.2.1",
+    "@nestjs/swagger": "^11.2.0",
+    "@nestjs/testing": "^11.2.1",
+    "@nestjs/throttler": "^6.5.0",
+    "@nestjs/typeorm": "^11.0.0",
+    "@nestjs/websockets": "^11.2.1",
+    "bcryptjs": "^2.4.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "helmet": "^8.1.0",
+    "pg": "^8.16.3",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "socket.io": "^4.8.3",
+    "typeorm": "^0.3.27"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.15.0",
+    "@types/pg": "^8.15.0",
+    "@types/supertest": "^6.0.3",
+    "embedded-postgres": "^17.5.0-beta.15",
+    "jest": "^29.7.0",
+    "socket.io-client": "^4.8.3",
+    "supertest": "^7.1.4",
+    "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.8.3"
+  },
+  "allowScripts": {
+    "@embedded-postgres/windows-x64@17.5.0-beta.15": true
+  }
+}

@@ -1,0 +1,79 @@
+appId: com.qaveno.desktop
+productName: QAVENO
+copyright: Copyright © 2026 QAVENO
+
+# Directories
+directories:
+  output: dist-electron
+  buildResources: assets
+
+# Files to include in the ASAR
+files:
+  - src/**/*
+  - assets/**/*
+  - "!tests/**"
+  - "!scripts/**"
+  - "!backend/**"
+  - "!.env*"
+  - "!docker-compose.yml"
+  - "!*.md"
+
+# Exclude sensitive files
+asarUnpack:
+  - "**/*.node"
+
+# Windows configuration
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: assets/icon.png
+  artifactName: "QAVENO-Setup-${version}.${ext}"
+  # Code signing — set CSC_LINK and CSC_KEY_PASSWORD env vars
+  # Or use: win.certificateFile, win.certificatePassword in env
+  # For EV signing, use Azure Trusted Signing or similar
+
+# NSIS installer configuration
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  installerIcon: assets/icon.png
+  uninstallerIcon: assets/icon.png
+  installerHeaderIcon: assets/icon.png
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: QAVENO
+  installerLanguages:
+    - 1033
+    - 1025
+  language: 1025
+
+# Application metadata
+extraMetadata:
+  main: src/main/main.js
+
+# Version
+version: 1.0.0
+
+# Compression
+compression: maximum
+
+# Debug: false
+debug: false
+
+# Auto-update — GitHub Releases
+publish:
+  provider: github
+  owner: qaveno
+  repo: qaveno-desktop
+  releaseType: release
+
+# Code signing configuration (for CI/CD)
+# Set these via environment variables:
+#   CSC_LINK — path to .pfx/.p12 certificate file (base64 or file path)
+#   CSC_KEY_PASSWORD — certificate password
+# For EV code signing, use Azure Trusted Signing or DigiCert KeyLocker
+# win.certificateFile: process.env.CSC_LINK
+# win.certificatePassword: process.env.CSC_KEY_PASSWORD

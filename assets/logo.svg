@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="24" fill="url(#g)"/>
+  <text x="60" y="72" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-weight="800" font-size="42" fill="white" letter-spacing="-1">Q</text>
+  <text x="60" y="102" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-weight="600" font-size="14" fill="rgba(255,255,255,0.85)" letter-spacing="4">QAVENO</text>
+</svg>

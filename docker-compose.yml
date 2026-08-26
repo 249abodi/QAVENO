@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-qaveno}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-qaveno}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-qaveno} -d ${POSTGRES_DB:-qaveno}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - qaveno-internal
+    # NOT exposed to host — only accessible from backend container
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-qaveno}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-qaveno}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER:-qaveno-backend}
+      ACCESS_TTL_SEC: ${ACCESS_TTL_SEC:-900}
+      REFRESH_TTL_SEC: ${REFRESH_TTL_SEC:-604800}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://qaveno.com,https://owner.qaveno.com}
+      RATE_LIMIT_TTL_SEC: ${RATE_LIMIT_TTL_SEC:-60}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
+      QAVENO_TRIAL_SECRET: ${QAVENO_TRIAL_SECRET:?Set QAVENO_TRIAL_SECRET}
+      SWAGGER_ENABLED: 'false'
+    ports:
+      - '${BACKEND_PORT:-3000}:3000'
+    networks:
+      - qaveno-internal
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  qaveno-internal:
+    driver: bridge

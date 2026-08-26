@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;" />
+  <title data-i18n="login.title">تسجيل الدخول</title>
+  <link rel="stylesheet" href="../shared/tokens.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="top-row">
+    <button id="langToggle" class="icon-btn lang-btn" data-i18n-title="ui.toggleLang" title="تغيير اللغة">EN</button>
+    <button id="themeToggle" class="icon-btn" data-i18n-title="ui.toggleTheme" title="تبديل الوضع الليلي/النهاري"></button>
+  </div>
+
+  <main class="login-wrap">
+    <section class="login-card">
+      <div class="brand">
+        <img id="brandLogo" class="brand-logo hidden" alt="" />
+        <span id="logoEmoji" data-icon="lock"></span>
+        <span id="storeName" class="store-name">متجري</span>
+      </div>
+
+      <h1 id="formTitle" data-i18n="login.welcome">مرحباً بعودتك</h1>
+      <p id="formSub" data-i18n="login.sub">سجّل الدخول للمتابعة إلى QAVENO</p>
+
+      <form id="loginForm" autocomplete="off">
+        <div class="field">
+          <label for="username" data-i18n="login.username">اسم المستخدم</label>
+          <input type="text" id="username" name="username" autocomplete="username"
+                 autocapitalize="none" spellcheck="false" required />
+        </div>
+
+        <div class="field">
+          <label for="password" data-i18n="login.password">كلمة المرور</label>
+          <input type="password" id="password" name="password"
+                 autocomplete="current-password" required />
+        </div>
+
+        <div id="confirmRow" class="field hidden-setup">
+          <label for="confirmPassword" data-i18n="login.confirm">تأكيد كلمة المرور</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" />
+        </div>
+
+        <div id="displayNameRow" class="field hidden-setup">
+          <label for="displayName" data-i18n="login.displayName">الاسم المعروض (اختياري)</label>
+          <input type="text" id="displayName" name="displayName" />
+        </div>
+
+        <p id="errLine" class="err" role="alert" hidden></p>
+
+        <button type="submit" id="submitBtn" class="btn primary block">
+          <span data-icon="logout"></span>
+          <span id="submitLabel" data-i18n="login.submit">دخول</span>
+        </button>
+      </form>
+
+      <!-- License activation screen (shown after setup) -->
+      <div id="licenseScreen" class="hidden">
+        <div class="brand">
+          <img id="brandLogo2" class="brand-logo" alt="QAVENO" src="../shared/logo.svg" />
+          <span id="logoEmoji2" data-icon="lock" class="hidden"></span>
+        </div>
+
+        <h1 id="licTitle">تفعيل QAVENO</h1>
+        <p id="licSub" class="lic-sub">أدخل كود الترخيص للبدء، أو ابدأ التجربة المجانية</p>
+
+        <div id="trialBanner" class="trial-banner hidden">
+          <span data-icon="info" style="font-size:18px"></span>
+          <span id="trialText"></span>
+        </div>
+
+        <div id="licForm">
+          <div class="field">
+            <label for="licCode">كود الترخيص</label>
+            <input type="text" id="licCode" placeholder="XXXX-XXXX-XXXX-XXXX"
+                   style="text-transform:uppercase;letter-spacing:0.1em;text-align:center;font-size:18px;font-weight:600" />
+          </div>
+          <div class="field">
+            <label for="cloudUrl">الخادم السحابي</label>
+            <input type="url" id="cloudUrl" placeholder="https://api.qaveno.com" value="" />
+          </div>
+
+          <p id="licErr" class="err" role="alert" hidden></p>
+
+          <button type="button" id="activateBtn" class="btn primary block">
+            <span>تفعيل الترخيص</span>
+          </button>
+
+          <button type="button" id="trialBtn" class="btn ghost block" style="margin-top:8px">
+            <span>ابدأ التجربة المجانية (14 يوماً)</span>
+          </button>
+
+          <button type="button" id="skipBtn" class="btn ghost block" style="margin-top:4px;font-size:12px;color:var(--text-muted)">
+            <span>تخطي — استخدام بدون ترخيص</span>
+          </button>
+        </div>
+
+        <div id="licActive" class="hidden" style="text-align:center">
+          <div style="font-size:48px;margin-bottom:12px">✅</div>
+          <h2 style="color:var(--success);margin-bottom:8px">الترخيص نشط</h2>
+          <p id="licActiveInfo" style="color:var(--text-muted);margin-bottom:16px"></p>
+          <button type="button" id="goAppBtn" class="btn primary">الذهاب للتطبيق</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../shared/i18n.js"></script>
+  <script src="../shared/icons.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

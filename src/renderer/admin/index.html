@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'" />
+  <title data-i18n="app.adminTitle">لوحة الإدارة — المخزون والمبيعات</title>
+  <!-- Shared design system -->
+  <link rel="stylesheet" href="../shared/tokens.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img id="brandLogo" class="brand-logo hidden" alt="" />
+      <span id="logoEmoji" data-icon="products"></span>
+      <span id="storeName">متجري</span>
+      <span class="tag" data-i18n="admin.tag">لوحة الإدارة</span>
+    </div>
+    <nav class="tabs">
+      <button class="tab active" data-tab="dashboard"><span data-i18n="tabs.dashboard">لوحة المعلومات</span></button>
+      <button class="tab" data-tab="products"><span data-i18n="tabs.products">المنتجات</span> <span id="alertsTabBadge" class="alert-pill hidden">0</span></button>
+      <button class="tab" data-tab="categories"><span data-i18n="tabs.categories">الفئات</span></button>
+      <button class="tab" data-tab="sales"><span data-i18n="tabs.sales">المبيعات</span></button>
+      <button class="tab" data-tab="movements"><span data-i18n="tabs.movements">حركات المخزون</span></button>
+<button class="tab hidden" id="invadvTabBtn" data-tab="invadv"><span data-i18n="tabs.invadv">المخزون المتقدم</span></button>
+      <button class="tab hidden" id="suppliersTabBtn" data-tab="suppliers"><span data-i18n="tabs.suppliers">الموردون</span></button>
+      <button class="tab hidden" id="purchasesTabBtn" data-tab="purchases"><span data-i18n="tabs.purchases">المشتريات</span></button>
+      <button class="tab hidden" id="transfersTabBtn" data-tab="transfers"><span data-i18n="tabs.transfers">التحويلات</span></button>
+      <button class="tab hidden" id="branchesTabBtn" data-tab="branches"><span data-i18n="tabs.branches">الفروع</span></button>
+      <button class="tab hidden" id="conflictsTabBtn" data-tab="conflicts"><span data-i18n="cf.title">تعارضات المزامنة</span> <span id="conflictsTabBadge" class="alert-pill hidden">0</span></button>
+      <button class="tab hidden" id="usersTabBtn" data-tab="users"><span data-i18n="users.title">المستخدمون</span></button>
+      <button class="tab hidden" id="billingTabBtn" data-tab="billing"><span data-i18n="billing.title">الاشتراك والفوترة</span></button>
+      <button class="tab hidden" id="analyticsTabBtn" data-tab="analytics"><span data-i18n="analytics.title">التقارير والتحليلات</span></button>
+      <button class="tab hidden" id="aiTabBtn" data-tab="ai"><span data-icon="brain"></span> <span data-i18n="ai.title">الذكاء التجاري</span></button>
+      <button class="tab" data-tab="settings"><span data-i18n="tabs.settings">الإعدادات</span></button>
+    </nav>
+    <div class="live-dot"><span class="dot"></span> <span data-i18n="admin.live">مباشر</span></div>
+    <div class="top-actions">
+      <select id="branchSwitcher" class="sort-select hidden" data-i18n-title="branch.switcherTitle" title="الفرع الحالي" aria-label="اختيار الفرع الحالي"></select>
+      <div id="userChip" class="user-chip hidden">
+        <span data-icon="user"></span>
+        <span id="userName"></span>
+      </div>
+      <button id="logoutBtn" class="icon-btn" data-i18n-title="common.logout" title="تسجيل الخروج"></button>
+      <button id="themeToggle" class="icon-btn" data-i18n-title="ui.toggleTheme" title="تبديل الوضع الليلي/النهاري"></button>
+      <button id="langToggle" class="icon-btn lang-btn" data-i18n-title="ui.toggleLang" title="تغيير اللغة">EN</button>
+    </div>
+  </header>
+
+  <!-- ============ Dashboard ============ -->
+  <section id="tab-dashboard" class="tab-page active">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="tabs.dashboard">لوحة المعلومات</h1>
+        <p class="page-description" data-i18n="page.dash.desc"></p>
+      </div>
+    </div>
+    <div id="criticalBanner" class="critical-banner hidden"></div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label" data-i18n="stats.todayCount">مبيعات اليوم</div>
+        <div class="stat-value" id="stCount">0</div>
+        <div class="stat-sub" data-i18n="stats.invoices">فاتورة</div>
+      </div>
+      <div class="stat-card primary">
+        <div class="stat-label" data-i18n="stats.revenue">إيرادات اليوم</div>
+        <div class="stat-value" id="stRevenue">0.00</div>
+        <div class="stat-sub cur">ر.س</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label" data-i18n="stats.profit">أرباح اليوم (تقديري)</div>
+        <div class="stat-value green" id="stProfit">0.00</div>
+        <div class="stat-sub cur">ر.س</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label" data-i18n="stats.tax">ضرائب اليوم</div>
+        <div class="stat-value" id="stTax">0.00</div>
+        <div class="stat-sub cur">ر.س</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title"><span class="p-ic" data-icon="notification"></span><span data-i18n="alerts.title">تنبيهات المخزون</span></div>
+        <div id="alertsPanel" class="alerts-panel"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><span class="p-ic" data-icon="inventory"></span><span data-i18n="mov.title">أحدث الحركات</span></div>
+        <div id="recentMovements" class="mini-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Products ============ -->
+  <section id="tab-products" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="tabs.products">المنتجات</h1>
+        <p class="page-description" data-i18n="page.prod.desc"></p>
+      </div>
+    </div>
+    <div class="toolbar">
+      <input id="prodSearch" type="text" data-i18n-placeholder="prod.searchPh" placeholder="بحث عن منتج…" />
+      <button id="addProductBtn" class="btn primary"><span data-icon="plus"></span><span data-i18n="prod.new">منتج جديد</span></button>
+    </div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th data-i18n="tbl.product">المنتج</th>
+            <th data-i18n="tbl.barcode">الباركود</th>
+            <th data-i18n="tbl.category">الفئة</th>
+            <th data-i18n="tbl.price">السعر</th>
+            <th data-i18n="tbl.cost">التكلفة</th>
+            <th data-i18n="tbl.quantity">الكمية</th>
+            <th data-i18n="tbl.status">الحالة</th>
+            <th data-i18n="tbl.actions">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="productsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ Categories ============ -->
+  <section id="tab-categories" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="tabs.categories">الفئات</h1>
+        <div class="page-sub muted" id="catsSubtitle"></div>
+      </div>
+      <button id="addCategoryBtn" class="btn primary"><span data-icon="plus"></span><span data-i18n="cats.add">إضافة فئة</span></button>
+    </div>
+
+    <div class="stats-grid compact">
+      <div class="stat-card"><div class="stat-label" data-i18n="stats.catsTotal">إجمالي الفئات</div><div class="stat-value sm" id="csTotal">—</div></div>
+      <div class="stat-card"><div class="stat-label" data-i18n="stats.prodsTotal">إجمالي المنتجات</div><div class="stat-value sm" id="csProducts">—</div></div>
+      <div class="stat-card"><div class="stat-label" data-i18n="stats.topCat">أكثر فئة منتجات</div><div class="stat-value sm top-cat" id="csTop">—</div></div>
+      <div class="stat-card"><div class="stat-label" data-i18n="stats.noProds">فئات بدون منتجات</div><div class="stat-value sm" id="csEmpty">—</div></div>
+    </div>
+
+    <div class="toolbar">
+      <input id="catSearch" type="text" data-i18n-placeholder="cats.searchPh" placeholder="ابحث عن فئة…" />
+      <select id="catSort" class="sort-select">
+        <option value="count" data-i18n="cats.sort.count">الأكثر منتجات</option>
+        <option value="name" data-i18n="cats.sort.name">الاسم</option>
+        <option value="newest" data-i18n="cats.sort.newest">الأحدث</option>
+        <option value="oldest" data-i18n="cats.sort.oldest">الأقدم</option>
+      </select>
+    </div>
+
+    <div class="panel full">
+      <div id="catsList" class="cats-list"></div>
+    </div>
+  </section>
+
+  <!-- ============ Sales ============ -->
+  <section id="tab-sales" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="tabs.sales">المبيعات</h1>
+        <p class="page-description" data-i18n="page.sales.desc"></p>
+      </div>
+    </div>
+    <div class="panel full">
+      <div class="panel-title"><span class="p-ic" data-icon="sales"></span><span data-i18n="sales.title">آخر الفواتير</span></div>
+      <div class="table-wrap plain">
+        <table class="tbl">
+          <thead><tr>
+            <th data-i18n="tbl.invoice">رقم الفاتورة</th>
+            <th data-i18n="tbl.branch">الفرع</th>
+            <th data-i18n="tbl.date">التاريخ</th>
+            <th data-i18n="tbl.payment">الدفع</th>
+            <th data-i18n="cart.tax">الضريبة</th>
+            <th data-i18n="tbl.discount">الخصم</th>
+            <th data-i18n="tbl.grand">الإجمالي</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="salesBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Movements ============ -->
+  <section id="tab-movements" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="tabs.movements">حركات المخزون</h1>
+        <p class="page-description" data-i18n="page.mov.desc"></p>
+      </div>
+    </div>
+    <div class="toolbar">
+      <input id="mvSearch" type="text" data-i18n-placeholder="mv.searchPh" placeholder="ابحث باسم المنتج أو الباركود…" />
+      <select id="mvBranchFilter" class="sort-select">
+        <option value="" data-i18n="mv.allBranches">كل الفروع</option>
+      </select>
+      <select id="mvReasonFilter" class="sort-select">
+        <option value="" data-i18n="mv.allReasons">كل الأسباب</option>
+        <option value="initial" data-i18n="mv.reason.initial">رصيد افتتاحي</option>
+        <option value="sale" data-i18n="mv.reason.sale">بيع</option>
+        <option value="grn" data-i18n="mv.reason.grn">استلام مشتريات</option>
+        <option value="grn_damaged" data-i18n="mv.reason.grn_damaged">تالف مستلم</option>
+        <option value="restock" data-i18n="mv.reason.restock">إضافة مخزون</option>
+        <option value="adjustment" data-i18n="mv.reason.adjustment">تسوية</option>
+        <option value="reconciliation" data-i18n="mv.reason.reconciliation">جرد</option>
+        <option value="transfer_out" data-i18n="mv.reason.transfer_out">تحويل صادر</option>
+        <option value="transfer_in" data-i18n="mv.reason.transfer_in">تحويل وارد</option>
+      </select>
+      <select id="mvRefFilter" class="sort-select">
+        <option value="" data-i18n="mv.allRefs">كل المراجع</option>
+        <option value="sale" data-i18n="mv.ref.sale">فاتورة بيع</option>
+        <option value="grn" data-i18n="mv.ref.grn">سند استلام</option>
+        <option value="adjustment" data-i18n="mv.ref.adjustment">تسوية يدوية</option>
+        <option value="reconciliation" data-i18n="mv.ref.reconciliation">جلسة جرد</option>
+        <option value="transfer" data-i18n="mv.ref.transfer">أمر تحويل</option>
+      </select>
+      <input id="mvDateFrom" type="date" data-i18n-title="mv.fromDate" />
+      <input id="mvDateTo" type="date" data-i18n-title="mv.toDate" />
+      <button id="mvResetBtn" class="btn ghost sm"><span data-i18n="mv.reset">تصفير</span></button>
+    </div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead>          <tr>
+          <th data-i18n="tbl.date">التاريخ</th>
+          <th data-i18n="tbl.branch">الفرع</th>
+          <th data-i18n="tbl.product">المنتج</th>
+          <th data-i18n="tbl.change">التغيير</th>
+          <th data-i18n="tbl.reason">السبب</th>
+          <th data-i18n="mv.reference">المرجع</th>
+          <th data-i18n="mv.actor">المستخدم</th>
+          <th data-i18n="tbl.balanceAfter">الرصيد بعدها</th>
+        </tr></thead>
+        <tbody id="movementsBody"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <button id="mvPrevBtn" class="btn ghost sm"><span data-i18n="common.prev">السابق</span></button>
+      <span id="mvPageInfo" class="muted"></span>
+      <button id="mvNextBtn" class="btn ghost sm"><span data-i18n="common.next">التالي</span></button>
+    </div>
+  </section>
+
+  <!-- ============ Advanced Inventory (Phase 23) ============ -->
+  <section id="tab-invadv" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="tabs.invadv">المخزون المتقدم</h1>
+        <p class="page-description" data-i18n="inv.desc"></p>
+      </div>
+      <button id="newReconBtn" class="btn primary hidden"><span data-icon="plus"></span><span data-i18n="inv.newRecon">بدء جرد جديد</span></button>
+    </div>
+
+    <div id="invOverview" class="stats-grid"></div>
+
+    <div class="panel full">
+      <div class="panel-title"><span class="p-ic" data-icon="inventory"></span><span data-i18n="inv.valuationTitle">تقييم المخزون (بالتكلفة)</span></div>
+      <div class="toolbar">
+        <input id="valSearch" type="text" data-i18n-placeholder="inv.searchPh" placeholder="ابحث عن منتج…" />
+        <select id="valBranch" class="sort-select">
+          <option value="" data-i18n="inv.allBranches">كل الفروع</option>
+        </select>
+        <select id="valCat" class="sort-select"></select>
+        <label class="chk-line"><input type="checkbox" id="valLowOnly" /><span data-i18n="inv.lowOnly">المنخفض/النافد فقط</span></label>
+      </div>
+      <div class="table-wrap plain">
+        <table class="tbl">
+          <thead><tr>
+            <th data-i18n="tbl.product">المنتج</th>
+            <th data-i18n="tbl.branch">الفرع</th>
+            <th data-i18n="tbl.category">التصنيف</th>
+            <th data-i18n="inv.qtyStatus">المخزون</th>
+            <th data-i18n="inv.wac">متوسط التكلفة</th>
+            <th data-i18n="inv.value">القيمة</th>
+            <th data-i18n="inv.suggest">طلب مقترح</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="valBody"></tbody>
+        </table>
+      </div>
+      <div id="valTotals" class="totals-bar"></div>
+    </div>
+
+    <div id="reconPanel" class="panel full hidden">
+      <div class="panel-title"><span class="p-ic" data-icon="check"></span><span data-i18n="inv.reconTitle">جلسات الجرد</span></div>
+      <div class="table-wrap plain">
+        <table class="tbl">
+          <thead><tr>
+            <th>#</th>
+            <th data-i18n="tbl.product">المنتج</th>
+            <th data-i18n="inv.systemQty">رصيد النظام عند البدء</th>
+            <th data-i18n="inv.countedQty">المعدود</th>
+            <th data-i18n="inv.diffQty">الفرق</th>
+            <th data-i18n="purch.status">الحالة</th>
+            <th data-i18n="mv.actor">المستخدم</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="reconsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Suppliers ============ -->
+  <section id="tab-suppliers" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="tabs.suppliers">الموردون</h1>
+        <p class="page-description" data-i18n="suppliers.desc">دليل الموردين لعمليات الشراء القادمة.</p>
+      </div>
+      <button id="addSupplierBtn" class="btn primary"><span data-icon="plus"></span><span data-i18n="suppliers.add">مورد جديد</span></button>
+    </div>
+    <div class="toolbar">
+      <input id="supSearch" type="text" data-i18n-placeholder="suppliers.searchPh" placeholder="ابحث عن مورد…" />
+    </div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th data-i18n="suppliers.name">المورد</th>
+            <th data-i18n="suppliers.phone">الهاتف</th>
+            <th data-i18n="suppliers.email">البريد الإلكتروني</th>
+            <th data-i18n="suppliers.status">الحالة</th>
+            <th data-i18n="suppliers.actions">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="suppliersBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ Purchases ============ -->
+  <section id="tab-purchases" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="tabs.purchases">المشتريات</h1>
+        <p class="page-description" data-i18n="purch.desc">أوامر الشراء وسجلات استلام البضائع.</p>
+      </div>
+      <button id="addPoBtn" class="btn primary"><span data-icon="plus"></span><span data-i18n="purch.add">أمر شراء جديد</span></button>
+    </div>
+    <div class="toolbar">
+      <input id="poSearch" type="text" data-i18n-placeholder="purch.searchPh" placeholder="ابحث برقم الأمر أو المورد…" />
+      <select id="poBranchFilter" class="sort-select">
+        <option value="" data-i18n="purch.allBranches">كل الفروع</option>
+      </select>
+      <select id="poStatusFilter" class="sort-select">
+        <option value="" data-i18n="purch.filterAll">كل الحالات</option>
+        <option value="draft" data-i18n="po.st.draft">مسودة</option>
+        <option value="submitted" data-i18n="po.st.submitted">مرسل</option>
+        <option value="approved" data-i18n="po.st.approved">معتمد</option>
+        <option value="partially_received" data-i18n="po.st.partially_received">مستلم جزئياً</option>
+        <option value="fully_received" data-i18n="po.st.fully_received">مستلم بالكامل</option>
+        <option value="cancelled" data-i18n="po.st.cancelled">ملغى</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th data-i18n="purch.ref">الرقم</th>
+            <th data-i18n="tbl.branch">الفرع</th>
+            <th data-i18n="suppliers.name">المورد</th>
+            <th data-i18n="purch.lines">البنود</th>
+            <th data-i18n="purch.totalCost">إجمالي التكلفة</th>
+            <th data-i18n="purch.receivedOf">المستلم</th>
+            <th data-i18n="purch.status">الحالة</th>
+            <th data-i18n="purch.expected">التسليم المتوقع</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="posBody"></tbody>
+      </table>
+    </div>
+    <h2 class="section-title" data-i18n="grns.title">سجل الاستلام (GRN)</h2>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th data-i18n="purch.ref">الرقم</th>
+            <th data-i18n="purch.poRef">أمر الشراء</th>
+            <th data-i18n="tbl.branch">الفرع</th>
+            <th data-i18n="suppliers.name">المورد</th>
+            <th data-i18n="purch.receivedQty">الكمية المستلمة</th>
+            <th data-i18n="purch.damagedQty">التالف</th>
+            <th data-i18n="tbl.date">التاريخ</th>
+          </tr>
+        </thead>
+        <tbody id="grnsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ Branches (Phase 24) ============ -->
+  <section id="tab-branches" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="branch.title">إدارة الفروع</h1>
+        <p class="page-description" data-i18n="branch.desc">إنشاء الفروع وإدارتها وتوزيع المستخدمين عليها.</p>
+      </div>
+      <button id="addBranchBtn" class="btn primary"><span data-icon="plus"></span><span data-i18n="branch.add">فرع جديد</span></button>
+    </div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th data-i18n="branch.name">اسم الفرع</th>
+            <th data-i18n="branch.code">الرمز</th>
+            <th data-i18n="branch.users">المستخدمون</th>
+            <th data-i18n="branch.products">الأصناف</th>
+            <th data-i18n="branch.stockQty">الكميات</th>
+            <th data-i18n="branch.stockValue">قيمة المخزون</th>
+            <th data-i18n="users.status">الحالة</th>
+            <th data-i18n="users.actions">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="branchesBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ Transfers (Phase 24) ============ -->
+  <section id="tab-transfers" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="tf.title">تحويلات المخزون</h1>
+        <p class="page-description" data-i18n="tf.desc">نقل الكميات بين الفروع مع تتبع كامل للتكلفة والحركات.</p>
+      </div>
+      <button id="addTransferBtn" class="btn primary"><span data-icon="plus"></span><span data-i18n="tf.add">تحويل جديد</span></button>
+    </div>
+    <div class="toolbar">
+      <select id="tfStatusFilter" class="sort-select">
+        <option value="" data-i18n="purch.filterAll">كل الحالات</option>
+        <option value="draft" data-i18n="tf.st.draft">مسودة</option>
+        <option value="submitted" data-i18n="tf.st.submitted">مرسل</option>
+        <option value="approved" data-i18n="tf.st.approved">معتمد</option>
+        <option value="dispatched" data-i18n="tf.st.dispatched">مُسلَّم بالكامل</option>
+        <option value="partially_received" data-i18n="tf.st.partially_received">مستلم جزئياً</option>
+        <option value="received" data-i18n="tf.st.received">مستلم</option>
+        <option value="cancelled" data-i18n="tf.st.cancelled">ملغى</option>
+      </select>
+      <select id="tfBranchFilter" class="sort-select">
+        <option value="" data-i18n="mv.allBranches">كل الفروع</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th data-i18n="tf.ref">الرقم</th>
+            <th data-i18n="tf.route">من ← إلى</th>
+            <th data-i18n="tf.items">بنود</th>
+            <th data-i18n="tf.totalQty">إجمالي الكمية</th>
+            <th data-i18n="tf.value">القيمة (تكلفة)</th>
+            <th data-i18n="purch.status">الحالة</th>
+            <th data-i18n="tf.created">التاريخ</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="transfersBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ Sync Conflicts (Phase 28) ============ -->
+  <section id="tab-conflicts" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="cf.title">تعارضات المزامنة</h1>
+        <p class="page-description" data-i18n="cf.desc">مراجعة وحسم التعارضات بين الجهاز والخادم.</p>
+      </div>
+      <button id="conflictsRefreshBtn" class="btn"><span data-icon="refresh"></span><span data-i18n="cf.refresh">تحديث من الخادم</span></button>
+    </div>
+    <div class="card table-card">
+      <div class="table-wrap">
+        <table aria-describedby="cfDesc">
+          <caption id="cfDesc" class="sr-only" data-i18n="cf.desc"></caption>
+          <thead>
+            <tr>
+              <th data-i18n="cf.entity">العنصر</th>
+              <th data-i18n="cf.type">النوع</th>
+              <th data-i18n="cf.date">التاريخ</th>
+              <th data-i18n="cf.status">الحالة</th>
+              <th data-i18n="cf.reason">السبب</th>
+              <th><span class="sr-only" data-i18n="cf.details">التفاصيل</span></th>
+            </tr>
+          </thead>
+          <tbody id="conflictsBody"></tbody>
+        </table>
+        <p id="conflictsEmpty" class="empty-note hidden" data-i18n="cf.empty"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Users ============ -->
+  <section id="tab-users" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="users.title">المستخدمون</h1>
+        <p class="page-description" data-i18n="users.desc">إدارة الحسابات والأدوار والصلاحيات.</p>
+      </div>
+      <button id="addUserBtn" class="btn primary"><span data-icon="plus"></span><span data-i18n="users.add">مستخدم جديد</span></button>
+    </div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th data-i18n="users.user">المستخدم</th>
+            <th data-i18n="users.role">الدور</th>
+            <th data-i18n="users.status">الحالة</th>
+            <th data-i18n="users.lastLogin">آخر دخول</th>
+            <th data-i18n="users.actions">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="usersBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ Settings ============ -->
+  <section id="tab-settings" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="tabs.settings">الإعدادات</h1>
+        <p class="page-description" data-i18n="page.settings.desc"></p>
+      </div>
+    </div>
+    <div class="panel settings-panel">
+      <div class="panel-title"><span class="p-ic" data-icon="settings"></span><span data-i18n="settings.title">إعدادات المتجر</span></div>
+      <form id="settingsForm">
+        <label><span data-i18n="settings.storeName">اسم المتجر</span><input name="store_name" type="text" required /></label>
+        <label><span data-i18n="settings.taxRate">نسبة الضريبة %</span><input name="tax_rate" type="number" min="0" max="100" step="0.01" required /></label>
+        <label><span data-i18n="settings.currency">رمز العملة</span><input name="currency" type="text" required /></label>
+        <button type="submit" class="btn primary" data-i18n="settings.save">حفظ الإعدادات</button>
+      </form>
+      <p class="hint" data-i18n="settings.hint">تُطبق نسبة الضريبة فوراً على شاشة الكاشير وعلى الفواتير الجديدة.</p>
+    </div>
+  </section>
+
+  <!-- ============ Subscription & Billing ============ -->
+  <section id="tab-billing" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="billing.title">الاشتراك والفوترة</h1>
+        <p class="page-description" data-i18n="billing.desc">إدارة خطتك وعرض الفواتير وتجديد الاشتراك</p>
+      </div>
+    </div>
+
+    <div id="billingAlert" class="critical-banner hidden"></div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label" data-i18n="billing.currentPlan">الخطة الحالية</div>
+        <div class="stat-value" id="billingPlanName">—</div>
+        <div class="stat-sub" id="billingPlanPrice"></div>
+      </div>
+      <div class="stat-card primary">
+        <div class="stat-label" data-i18n="billing.status">الحالة</div>
+        <div class="stat-value" id="billingStatus">—</div>
+        <div class="stat-sub" id="billingStatusSub"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label" data-i18n="billing.users">المستخدمون</div>
+        <div class="stat-value" id="billingUsers">0 / 0</div>
+        <div class="stat-sub" data-i18n="billing.usage">الاستخدام</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label" data-i18n="billing.branches">الفروع</div>
+        <div class="stat-value" id="billingBranches">0 / 0</div>
+        <div class="stat-sub" data-i18n="billing.usage">الاستخدام</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title"><span class="p-ic" data-icon="settings"></span><span data-i18n="billing.plans">الخطط المتاحة</span></div>
+        <div id="billingPlansList" class="state-box"><span class="s" data-i18n="state.loading">جاري التحميل…</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><span class="p-ic" data-icon="sales"></span><span data-i18n="billing.history">سجل الفواتير</span></div>
+        <div id="billingHistoryList" class="state-box"><span class="s" data-i18n="state.loading">جاري التحميل…</span></div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:var(--space-lg)">
+      <div class="panel-title"><span class="p-ic" data-icon="settings"></span><span data-i18n="billing.actions">إجراءات</span></div>
+      <div class="flex gap-sm" style="flex-wrap:wrap">
+        <button class="btn primary" id="billingRenewBtn" data-i18n="billing.renew">تجديد الاشتراك</button>
+        <button class="btn danger" id="billingCancelBtn" data-i18n="billing.cancelSub">إلغاء الاشتراك</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Analytics & Reports ============ -->
+  <section id="tab-analytics" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" data-i18n="analytics.title">التقارير والتحليلات</h1>
+        <p class="page-description" data-i18n="analytics.desc">تحليل شامل للمبيعات والأرباح والمخزون</p>
+      </div>
+    </div>
+
+    <div class="analytics-toolbar">
+      <label><span data-i18n="analytics.from">من تاريخ</span><input id="analyticsFrom" type="date" /></label>
+      <label><span data-i18n="analytics.to">إلى تاريخ</span><input id="analyticsTo" type="date" /></label>
+      <button class="btn primary" id="analyticsFilterBtn" data-i18n="analytics.filter">تطبيق الفلتر</button>
+      <button class="btn" id="analyticsRefreshBtn" data-i18n="analytics.refresh">تحديث</button>
+    </div>
+
+    <div id="analyticsStats" class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label" data-i18n="analytics.revenue">الإيرادات</div>
+        <div class="stat-value" id="axRevenue">—</div>
+      </div>
+      <div class="stat-card primary">
+        <div class="stat-label" data-i18n="analytics.profit">الأرباح</div>
+        <div class="stat-value green" id="axProfit">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label" data-i18n="analytics.orders">عدد الطلبات</div>
+        <div class="stat-value" id="axOrders">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label" data-i18n="analytics.avgOrder">متوسط الطلب</div>
+        <div class="stat-value" id="axAvgOrder">—</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title"><span class="p-ic" data-icon="sales"></span><span data-i18n="analytics.salesTrend">اتجاه المبيعات</span></div>
+        <div id="axSalesTrend" class="state-box"><span class="s" data-i18n="state.loading">جاري التحميل…</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><span class="p-ic" data-icon="sales"></span><span data-i18n="analytics.profitTrend">اتجاه الأرباح</span></div>
+        <div id="axProfitTrend" class="state-box"><span class="s" data-i18n="state.loading">جاري التحميل…</span></div>
+      </div>
+    </div>
+
+    <div class="two-col" style="margin-top:var(--space-lg)">
+      <div class="panel">
+        <div class="panel-title"><span class="p-ic" data-icon="products"></span><span data-i18n="analytics.topProducts">أكثر المنتجات مبيعاً</span></div>
+        <div id="axTopProducts" class="state-box"><span class="s" data-i18n="state.loading">جاري التحميل…</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><span class="p-ic" data-icon="branches"></span><span data-i18n="analytics.catPerf">أداء الفئات</span></div>
+        <div id="axCatPerf" class="state-box"><span class="s" data-i18n="state.loading">جاري التحميل…</span></div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:var(--space-lg)">
+      <div class="panel-title"><span class="p-ic" data-icon="inventory"></span><span data-i18n="analytics.branchPerf">أداء الفروع</span></div>
+      <div id="axBranchPerf" class="state-box"><span class="s" data-i18n="state.loading">جاري التحميل…</span></div>
+    </div>
+
+    <div class="panel" style="margin-top:var(--space-lg)">
+      <div class="panel-title"><span class="p-ic" data-icon="sales"></span><span data-i18n="billing.actions">إجراءات</span></div>
+      <div class="flex gap-sm" style="flex-wrap:wrap">
+        <button class="btn" id="axExportSales" data-i18n="analytics.exportSales">تصدير مبيعات CSV</button>
+        <button class="btn" id="axExportProfit" data-i18n="analytics.exportProfit">تصدير أرباح CSV</button>
+        <button class="btn" id="axExportInventory" data-i18n="analytics.exportInventory">تصدير مخزون CSV</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AI Intelligence ============ -->
+  <section id="tab-ai" class="tab-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title"><span data-icon="brain"></span> <span data-i18n="ai.title">الذكاء التجاري</span></h1>
+        <p class="page-description" data-i18n="ai.desc">تحليلات ذكية لل_inventory والمبيعات والأرباح</p>
+      </div>
+      <button class="btn primary" id="aiRefreshBtn"><span data-icon="refresh"></span> <span data-i18n="ai.refresh">تحديث جميع الرؤى</span></button>
+    </div>
+
+    <!-- KPI Cards -->
+    <div id="aiKpiGrid" class="stats-grid" style="margin-bottom:var(--space-xl)">
+      <div class="stat-card ai-card">
+        <div class="ai-kpi">
+          <div class="kpi-value" id="aiTotalProducts">—</div>
+          <div class="kpi-label" data-i18n="ai.forecast">توقعات الطلب</div>
+        </div>
+      </div>
+      <div class="stat-card ai-card">
+        <div class="ai-kpi">
+          <div class="kpi-value" id="aiAnomalyCount" style="color:var(--warning)">—</div>
+          <div class="kpi-label" data-i18n="ai.anomalies">الشذوذات</div>
+        </div>
+      </div>
+      <div class="stat-card ai-card">
+        <div class="ai-kpi">
+          <div class="kpi-value" id="aiReorderCount" style="color:var(--danger)">—</div>
+          <div class="kpi-label" data-i18n="ai.reorder">طلب إعادة تخزين</div>
+        </div>
+      </div>
+      <div class="stat-card ai-card">
+        <div class="ai-kpi">
+          <div class="kpi-value" id="aiRevenueChange">—</div>
+          <div class="kpi-label" data-i18n="ai.summary">ملخص الأعمال</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demand Forecast + Reorder -->
+    <div class="two-col">
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <span class="ai-card-icon" data-icon="trendUp"></span>
+          <span class="ai-card-title" data-i18n="ai.forecast">توقعات الطلب</span>
+        </div>
+        <div class="ai-card-body" id="aiForecastPanel">
+          <div class="ai-loading"><span data-icon="refresh"></span> <span data-i18n="state.loading">جاري التحميل…</span></div>
+        </div>
+      </div>
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <span class="ai-card-icon" data-icon="alertTriangle"></span>
+          <span class="ai-card-title" data-i18n="ai.reorder">طلب إعادة تخزين</span>
+        </div>
+        <div class="ai-card-body" id="aiReorderPanel">
+          <div class="ai-loading"><span data-icon="refresh"></span> <span data-i18n="state.loading">جاري التحميل…</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Anomalies + Profit Alerts -->
+    <div class="two-col" style="margin-top:var(--space-lg)">
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <span class="ai-card-icon" data-icon="alertTriangle"></span>
+          <span class="ai-card-title" data-i18n="ai.anomalies">الشذوذات</span>
+        </div>
+        <div class="ai-card-body" id="aiAnomaliesPanel">
+          <div class="ai-loading"><span data-icon="refresh"></span> <span data-i18n="state.loading">جاري التحميل…</span></div>
+        </div>
+      </div>
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <span class="ai-card-icon" data-icon="dollarSign"></span>
+          <span class="ai-card-title" data-i18n="ai.profitAlert">تنبيهات الأرباح</span>
+        </div>
+        <div class="ai-card-body" id="aiProfitAlertPanel">
+          <div class="ai-loading"><span data-icon="refresh"></span> <span data-i18n="state.loading">جاري التحميل…</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slow Moving + Cost Trend -->
+    <div class="two-col" style="margin-top:var(--space-lg)">
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <span class="ai-card-icon" data-icon="clock"></span>
+          <span class="ai-card-title" data-i18n="ai.slowMoving">مخزون بطيء الحركة</span>
+        </div>
+        <div class="ai-card-body" id="aiSlowMovingPanel">
+          <div class="ai-loading"><span data-icon="refresh"></span> <span data-i18n="state.loading">جاري التحميل…</span></div>
+        </div>
+      </div>
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <span class="ai-card-icon" data-icon="trendDown"></span>
+          <span class="ai-card-title" data-i18n="ai.costTrend">اتجاه التكاليف</span>
+        </div>
+        <div class="ai-card-body" id="aiCostTrendPanel">
+          <div class="ai-loading"><span data-icon="refresh"></span> <span data-i18n="state.loading">جاري التحميل…</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Product modal ============ -->
+  <div class="modal hidden" id="productModal">
+    <div class="modal-card">
+      <h3 id="productModalTitle">منتج جديد</h3>
+      <form id="productForm">
+        <label><span data-i18n="prod.name">اسم المنتج *</span><input name="name" type="text" required /></label>
+        <div class="form-row">
+          <label><span data-i18n="prod.barcode">الباركود</span><input name="barcode" type="text" /></label>
+          <label><span data-i18n="prod.categoryLabel">الفئة</span>
+            <select name="category_id" id="productCategorySelect"></select>
+          </label>
+        </div>
+        <div class="form-row">
+          <label><span data-i18n="prod.sellPrice">سعر البيع *</span><input name="price" type="number" min="0" step="0.01" required /></label>
+          <label><span data-i18n="prod.costPrice">سعر التكلفة</span><input name="cost" type="number" min="0" step="0.01" value="0" /></label>
+        </div>
+        <div class="form-row">
+          <label id="qtyFieldWrap"><span data-i18n="prod.initQty">الكمية الابتدائية</span><input name="quantity" type="number" min="0" step="1" value="0" /></label>
+          <label><span data-i18n="prod.alertThreshold">حد التنبيه (كمية منخفضة)</span><input name="low_stock_threshold" type="number" min="0" step="1" value="5" /></label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="productCancelBtn" data-i18n="common.cancel">إلغاء</button>
+          <button type="submit" class="btn primary" data-i18n="common.save">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Restock modal ============ -->
+  <div class="modal hidden" id="restockModal">
+    <div class="modal-card small">
+      <h3 id="restockTitle">توريد كمية</h3>
+      <p class="hint" id="restockInfo"></p>
+      <form id="restockForm">
+        <label><span data-i18n="restock.addedQty">الكمية المضافة *</span><input name="qty" type="number" min="1" step="1" required autofocus /></label>
+        <label><span data-i18n="restock.note">ملاحظة (اختياري)</span><input name="note" type="text" placeholder="…" /></label>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="restockCancelBtn" data-i18n="common.cancel">إلغاء</button>
+          <button type="submit" class="btn primary" data-i18n="restock.submit">توريد</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Category modal ============ -->
+  <div class="modal hidden" id="categoryModal">
+    <div class="modal-card small">
+      <h3 id="categoryModalTitle">إضافة فئة جديدة</h3>
+      <form id="categoryForm">
+        <label><span data-i18n="cats.name">اسم الفئة *</span><input name="name" type="text" required /></label>
+        <div class="color-field">
+          <span class="lbl" data-i18n="cats.color">لون الفئة</span>
+          <div id="colorSwatches" class="swatches"></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="categoryCancelBtn" data-i18n="common.cancel">إلغاء</button>
+          <button type="submit" class="btn primary" id="categorySaveBtn" data-i18n="cats.saveNew">إضافة</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Delete category modal ============ -->
+  <div class="modal hidden" id="deleteCatModal">
+    <div class="modal-card small">
+      <h3 data-i18n="del.title">حذف الفئة؟</h3>
+      <p class="del-warn" id="delWarnText"></p>
+      <p class="del-products-q" id="delProductsQ"></p>
+      <div class="del-options">
+        <label class="del-opt">
+          <input type="radio" name="delMode" value="move" checked />
+          <span data-i18n="del.moveOpt">نقل المنتجات إلى فئة أخرى:</span>
+        </label>
+        <select id="moveToSelect"></select>
+        <label class="del-opt">
+          <input type="radio" name="delMode" value="detach" />
+          <span data-i18n="del.detachOpt">تصبح المنتجات بدون فئة</span>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="deleteCatCancelBtn" data-i18n="common.cancel">إلغاء</button>
+        <button type="button" class="btn danger-solid" id="deleteCatConfirmBtn" data-i18n="del.confirm">حذف الفئة</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Sale details modal ============ -->
+  <div class="modal hidden" id="saleModal">
+    <div class="modal-card receipt">
+      <h3 id="saleModalTitle"></h3>
+      <table class="receipt-table">
+        <thead><tr>
+          <th data-i18n="receipt.product">المنتج</th>
+          <th data-i18n="receipt.qty">كمية</th>
+          <th data-i18n="receipt.price">سعر</th>
+          <th data-i18n="cart.tax">ضريبة</th>
+          <th data-i18n="receipt.lineTotal">إجمالي</th>
+        </tr></thead>
+        <tbody id="saleItemsBody"></tbody>
+      </table>
+      <div class="receipt-totals" id="saleTotals"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn primary" id="saleCloseBtn" data-i18n="common.close">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ User modal ============ -->
+  <div class="modal hidden" id="userModal">
+    <div class="modal-card small">
+      <h3 id="userModalTitle">مستخدم جديد</h3>
+      <form id="userForm">
+        <label><span data-i18n="users.field.username">اسم المستخدم *</span>
+          <input name="username" type="text" autocapitalize="none" spellcheck="false" dir="ltr" required />
+        </label>
+        <label><span data-i18n="users.field.displayName">الاسم المعروض</span>
+          <input name="display_name" type="text" />
+        </label>
+        <div class="form-row">
+          <label><span data-i18n="users.field.role">الدور *</span>
+            <select name="role">
+              <option value="cashier" data-i18n="users.role.cashier">كاشير</option>
+              <option value="manager" data-i18n="users.role.manager">مدير</option>
+              <option value="admin" data-i18n="users.role.admin">مسؤول</option>
+              <option value="owner" data-i18n="users.role.owner">مالك</option>
+            </select>
+          </label>
+          <label id="userStatusWrap"><span data-i18n="users.status">الحالة</span>
+            <select name="status">
+              <option value="active" data-i18n="users.status.active">نشط</option>
+              <option value="disabled" data-i18n="users.status.disabled">معطل</option>
+            </select>
+          </label>
+        </div>
+        <div class="form-row">
+          <label><span id="pwdLabel"><span data-i18n="users.field.password">كلمة المرور</span> *</span>
+            <input name="password" type="password" autocomplete="new-password" />
+          </label>
+          <label id="curPwdWrap" class="hidden"><span data-i18n="users.field.currentPassword">كلمة المرور الحالية</span>
+            <input name="current_password" type="password" autocomplete="current-password" />
+          </label>
+        </div>
+        <p class="hint" id="pwdHint" data-i18n="users.field.passwordHint">8 أحرف على الأقل. اتركها فارغة لعدم التغيير</p>
+        <div id="userBranchesWrap" class="ub-wrap hidden">
+          <span class="lbl" data-i18n="userBranches.title">فروع المستخدم</span>
+          <p class="hint" id="userBranchesHint" data-i18n="userBranches.hint">المالك والمسؤول يغطيان كل الفروع تلقائياً.</p>
+          <div id="userBranchChecks" class="ub-grid"></div>
+          <p class="err" id="userBranchErr" role="alert" hidden></p>
+        </div>
+        <p class="err" id="userErrLine" role="alert" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="userCancelBtn" data-i18n="common.cancel">إلغاء</button>
+          <button type="submit" class="btn primary" id="userSaveBtn" data-i18n="common.save">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ PO editor modal ============ -->
+  <div class="modal hidden" id="poModal">
+    <div class="modal-card wide">
+      <h3 id="poModalTitle">أمر شراء جديد</h3>
+      <form id="poForm">
+        <div class="form-row">
+          <label><span data-i18n="purch.supplier">المورد *</span>
+            <select name="supplier_id" id="poSupplierSelect" required></select>
+          </label>
+          <label><span data-i18n="tbl.branch">الفرع</span>
+            <select name="branch_id" id="poBranchSelect"></select>
+          </label>
+        </div>
+        <div class="form-row">
+          <label><span data-i18n="purch.expected">تاريخ التسليم المتوقع</span>
+            <input name="expected_at" type="date" dir="ltr" />
+          </label>
+        </div>
+        <label><span data-i18n="purch.notes">ملاحظات</span>
+          <textarea name="notes" rows="2"></textarea>
+        </label>
+
+        <div class="po-items-editor">
+          <div class="form-row po-add-row">
+            <label><span data-i18n="purch.product">المنتج</span>
+              <select id="poProductSelect"></select>
+            </label>
+            <label><span data-i18n="purch.qty">الكمية</span>
+              <input id="poItemQty" type="number" min="1" step="1" value="1" />
+            </label>
+            <label><span data-i18n="purch.unitCost">تكلفة الوحدة</span>
+              <input id="poItemCost" type="number" min="0" step="0.01" value="0" dir="ltr" />
+            </label>
+            <button type="button" class="btn ghost" id="poAddItemBtn"><span data-icon="plus"></span><span data-i18n="purch.addItem">إضافة</span></button>
+          </div>
+          <div class="table-wrap plain">
+            <table class="tbl">
+              <thead><tr>
+                <th data-i18n="purch.product">المنتج</th>
+                <th data-i18n="purch.qty">الكمية</th>
+                <th data-i18n="purch.unitCost">تكلفة الوحدة</th>
+                <th></th>
+              </tr></thead>
+              <tbody id="poItemsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <p class="err" id="poErrLine" role="alert" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="poCancelBtn" data-i18n="common.cancel">إلغاء</button>
+          <button type="submit" class="btn primary" id="poSaveBtn" data-i18n="common.save">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Receive (GRN) modal ============ -->
+  <div class="modal hidden" id="receiveModal">
+    <div class="modal-card wide">
+      <h3><span id="receiveRef"></span> — <span data-i18n="grns.receiveTitle">استلام بضاعة</span></h3>
+      <p class="hint" id="receiveMeta"></p>
+      <form id="receiveForm">
+        <div class="table-wrap plain">
+          <table class="tbl">
+            <thead><tr>
+              <th data-i18n="purch.product">المنتج</th>
+              <th data-i18n="purch.remaining">المتبقي</th>
+              <th data-i18n="purch.receivedQty">الكمية المستلمة</th>
+              <th data-i18n="purch.damagedQty">التالف</th>
+              <th data-i18n="purch.unitCost">تكلفة الوحدة</th>
+            </tr></thead>
+            <tbody id="receiveItemsBody"></tbody>
+          </table>
+        </div>
+        <label><span data-i18n="purch.notes">ملاحظات</span>
+          <textarea name="notes" rows="2"></textarea>
+        </label>
+        <p class="err" id="receiveErrLine" role="alert" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="receiveCancelBtn" data-i18n="common.cancel">إلغاء</button>
+          <button type="submit" class="btn primary" id="receiveSaveBtn" data-i18n="grns.confirmReceive">تأكيد الاستلام</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ PO details modal ============ -->
+  <div class="modal hidden" id="poDetailsModal">
+    <div class="modal-card wide">
+      <h3 id="poDetailsRef"></h3>
+      <p class="hint" id="poDetailsMeta"></p>
+      <div class="table-wrap plain">
+        <table class="tbl">
+          <thead><tr>
+            <th data-i18n="purch.product">المنتج</th>
+            <th data-i18n="purch.ordered">المطلوب</th>
+            <th data-i18n="purch.receivedOf">المستلم</th>
+            <th data-i18n="purch.remaining">المتبقي</th>
+            <th data-i18n="purch.unitCost">تكلفة الوحدة</th>
+            <th data-i18n="purch.lineTotal">الإجمالي</th>
+          </tr></thead>
+          <tbody id="poDetailsBody"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="poDetailsCloseBtn" data-i18n="common.close">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Supplier modal ============ -->
+  <div class="modal hidden" id="supplierModal">
+    <div class="modal-card small">
+      <h3 id="supplierModalTitle">مورد جديد</h3>
+      <form id="supplierForm">
+        <label><span data-i18n="suppliers.field.name">اسم المورد *</span>
+          <input name="name" type="text" required />
+        </label>
+        <div class="form-row">
+          <label><span data-i18n="suppliers.field.phone">رقم الهاتف</span>
+            <input name="phone" type="tel" dir="ltr" />
+          </label>
+          <label><span data-i18n="suppliers.field.email">البريد الإلكتروني</span>
+            <input name="email" type="email" dir="ltr" />
+          </label>
+        </div>
+        <label><span data-i18n="suppliers.field.address">العنوان</span>
+          <input name="address" type="text" />
+        </label>
+        <label><span data-i18n="suppliers.field.notes">ملاحظات</span>
+          <textarea name="notes" rows="2"></textarea>
+        </label>
+        <label id="supStatusWrap" class="hidden"><span data-i18n="suppliers.field.status">الحالة</span>
+          <select name="status">
+            <option value="active" data-i18n="suppliers.status.active">نشط</option>
+            <option value="disabled" data-i18n="suppliers.status.disabled">معطل</option>
+          </select>
+        </label>
+        <p class="err" id="supErrLine" role="alert" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="supplierCancelBtn" data-i18n="common.cancel">إلغاء</button>
+          <button type="submit" class="btn primary" id="supplierSaveBtn" data-i18n="common.save">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Branch modal (Phase 24) ============ -->
+  <div class="modal hidden" id="branchModal">
+    <div class="modal-card small">
+      <h3 id="branchModalTitle">فرع جديد</h3>
+      <form id="branchForm">
+        <label><span data-i18n="branch.name">اسم الفرع *</span>
+          <input name="name" type="text" required />
+        </label>
+        <div class="form-row">
+          <label><span data-i18n="branch.code">الرمز *</span>
+            <input name="code" type="text" autocapitalize="none" spellcheck="false" dir="ltr" required />
+          </label>
+          <label><span data-i18n="branch.phone">الهاتف</span>
+            <input name="phone" type="tel" dir="ltr" />
+          </label>
+        </div>
+        <label><span data-i18n="branch.address">العنوان</span>
+          <input name="address" type="text" />
+        </label>
+        <label id="branchStatusWrap" class="hidden"><span data-i18n="branch.status">الحالة</span>
+          <select name="status">
+            <option value="active" data-i18n="users.status.active">نشط</option>
+            <option value="disabled" data-i18n="users.status.disabled">معطل</option>
+          </select>
+        </label>
+        <p class="err" id="branchErrLine" role="alert" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="branchCancelBtn" data-i18n="common.cancel">إلغاء</button>
+          <button type="submit" class="btn primary" data-i18n="common.save">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Transfer create modal (Phase 24) ============ -->
+  <div class="modal hidden" id="transferModal">
+    <div class="modal-card wide">
+      <h3 data-i18n="tf.modal.create">أمر تحويل جديد</h3>
+      <form id="transferForm">
+        <div class="form-row">
+          <label><span data-i18n="tf.source">الفرع المصدر *</span>
+            <select name="source_branch_id" id="tfSourceSelect" required></select>
+          </label>
+          <label><span data-i18n="tf.dest">الفرع الهدف *</span>
+            <select name="dest_branch_id" id="tfDestSelect" required></select>
+          </label>
+        </div>
+        <div class="po-items-editor">
+          <div class="form-row po-add-row">
+            <label><span data-i18n="purch.product">المنتج</span>
+              <select id="tfProductSelect"></select>
+            </label>
+            <label><span data-i18n="purch.qty">الكمية</span>
+              <input id="tfItemQty" type="number" min="1" step="1" value="1" />
+            </label>
+            <button type="button" class="btn ghost" id="tfAddItemBtn"><span data-icon="plus"></span><span data-i18n="purch.addItem">إضافة</span></button>
+          </div>
+          <div class="table-wrap plain">
+            <table class="tbl">
+              <thead><tr>
+                <th data-i18n="purch.product">المنتج</th>
+                <th data-i18n="tf.qtyCol">الكمية</th>
+                <th></th>
+              </tr></thead>
+              <tbody id="tfItemsBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <label><span data-i18n="tf.notes">ملاحظات</span>
+          <textarea name="notes" rows="2"></textarea>
+        </label>
+        <p class="err" id="tfErrLine" role="alert" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="tfCancelBtn" data-i18n="common.cancel">إلغاء</button>
+          <button type="submit" class="btn primary" id="tfSaveBtn" data-i18n="common.save">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Transfer details modal (Phase 24) ============ -->
+  <div class="modal hidden" id="transferDetailsModal">
+    <div class="modal-card wide">
+      <h3 id="tdRef"></h3>
+      <p class="hint" id="tdMeta"></p>
+      <p class="hint" id="tdNotes"></p>
+      <div class="table-wrap plain">
+        <table class="tbl">
+          <thead><tr>
+            <th data-i18n="purch.product">المنتج</th>
+            <th data-i18n="tf.qtyCol">الكمية</th>
+            <th data-i18n="tf.sentCol">المُسلَّم</th>
+            <th data-i18n="tf.recvCol">المستلم</th>
+            <th data-i18n="tf.costCol">التكلفة المحمولة</th>
+            <th id="tfActionQtyHead" data-i18n="inv.delta">قيمة التعديل (باستخدام + أو -)</th>
+          </tr></thead>
+          <tbody id="tdItemsBody"></tbody>
+        </table>
+      </div>
+      <p class="hint" data-i18n="tf.carriedHint">التكلفة المحمولة = متوسط تكلفة الفرع المصدر وقت التسليم.</p>
+      <p class="err" id="tdErrLine" role="alert" hidden></p>
+      <div class="modal-actions" id="tdActions"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn primary" id="tdCloseBtn" data-i18n="common.close">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Confirm modal ============ -->
+  <div class="modal hidden" id="confirmModal">
+    <div class="modal-card small">
+      <h3 data-i18n="confirm.title">تأكيد الحذف</h3>
+      <p class="del-warn" id="confirmMsg"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="confirmCancelBtn" data-i18n="common.cancel">إلغاء</button>
+        <button type="button" class="btn danger-solid" id="confirmOkBtn" data-i18n="common.delete">حذف</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Stock adjustment modal (Phase 23) ============ -->
+  <div class="modal hidden" id="invAdjustModal">
+    <div class="modal-card small">
+      <h3 data-i18n="inv.adjustTitle">تسوية مخزون</h3>
+      <form id="invAdjustForm">
+        <p class="hint-line"><b id="invAdjProductName"></b> · <span data-i18n="inv.currentQty">المخزون الحالي</span>: <b id="invAdjCurrentQty"></b></p>
+        <label><span data-i18n="inv.delta">قيمة التعديل (باستخدام + أو -) *</span>
+          <input name="delta" type="number" step="1" dir="ltr" required />
+        </label>
+        <p class="hint-line"><span data-i18n="inv.resulting">الرصيد الناتج:</span> <b id="invAdjPreview">—</b></p>
+        <label><span data-i18n="inv.reasonCode">السبب *</span>
+          <select name="reason_code" required>
+            <option value="damaged" data-i18n="inv.rc.damaged">تالف</option>
+            <option value="lost" data-i18n="inv.rc.lost">مفقود</option>
+            <option value="found" data-i18n="inv.rc.found">وجدت</option>
+            <option value="counting_error" data-i18n="inv.rc.counting_error">خطأ عدّ</option>
+            <option value="opening_balance" data-i18n="inv.rc.opening_balance">رصيد افتتاحي</option>
+            <option value="correction" data-i18n="inv.rc.correction">تصحيح يدوي</option>
+            <option value="other" data-i18n="inv.rc.other">أخرى</option>
+          </select>
+        </label>
+        <label><span data-i18n="suppliers.field.notes">ملاحظات</span>
+          <textarea name="note" rows="2"></textarea>
+        </label>
+        <p class="err" id="invAdjustErr" role="alert" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="invAdjustCancelBtn" data-i18n="common.cancel">إلغاء</button>
+          <button type="submit" class="btn primary" data-i18n="common.save">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Reorder rules modal (Phase 23) ============ -->
+  <div class="modal hidden" id="invRulesModal">
+    <div class="modal-card small">
+      <h3 data-i18n="inv.rulesTitle">إعدادات إعادة الطلب</h3>
+      <form id="invRulesForm">
+        <p class="hint-line"><b id="invRulesProductName"></b></p>
+        <div class="form-row">
+          <label><span data-i18n="inv.reorderLevel">مستوى الطلب</span>
+            <input name="low_stock_threshold" type="number" min="0" step="1" dir="ltr" />
+          </label>
+          <label><span data-i18n="inv.reorderQty">كمية الطلب</span>
+            <input name="reorder_qty" type="number" min="0" step="1" dir="ltr" />
+          </label>
+        </div>
+        <p class="err" id="invRulesErr" role="alert" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="invRulesCancelBtn" data-i18n="common.cancel">إلغاء</button>
+          <button type="submit" class="btn primary" data-i18n="common.save">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Reconciliation modal (Phase 23) ============ -->
+  <div class="modal hidden" id="invReconModal">
+    <div class="modal-card small">
+      <h3 data-i18n="inv.reconModalTitle">جلسة جرد جديدة</h3>
+      <form id="invReconForm">
+        <label><span data-i18n="tbl.product">المنتج *</span>
+          <select name="product_id" id="invReconProduct" required></select>
+        </label>
+        <p class="hint-line"><span data-i18n="inv.systemNow">رصيد النظام الآن</span>: <b id="invReconSystemQty">—</b></p>
+        <label><span data-i18n="inv.countedQty">الكمية المعدودة فعلياً *</span>
+          <input name="counted_qty" type="number" min="0" step="1" dir="ltr" required />
+        </label>
+        <label><span data-i18n="inv.reasonCode">السبب *</span>
+          <select name="reason_code" required>
+            <option value="damaged" data-i18n="inv.rc.damaged">تالف</option>
+            <option value="lost" data-i18n="inv.rc.lost">مفقود</option>
+            <option value="found" data-i18n="inv.rc.found">وجدت</option>
+            <option value="counting_error" data-i18n="inv.rc.counting_error">خطأ عدّ</option>
+            <option value="opening_balance" data-i18n="inv.rc.opening_balance">رصيد افتتاحي</option>
+            <option value="correction" data-i18n="inv.rc.correction">تصحيح يدوي</option>
+            <option value="other" data-i18n="inv.rc.other">أخرى</option>
+          </select>
+        </label>
+        <label><span data-i18n="suppliers.field.notes">ملاحظات</span>
+          <textarea name="note" rows="2"></textarea>
+        </label>
+        <p class="err" id="invReconErr" role="alert" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="invReconCancelBtn" data-i18n="common.cancel">إلغاء</button>
+          <button type="submit" class="btn primary" data-i18n="inv.capture">تسجيل الجرد للمراجعة</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Cost history modal (Phase 23) ============ -->
+  <div class="modal hidden" id="invCostModal">
+    <div class="modal-card wide">
+      <h3><span data-i18n="inv.costTitle">سجل التكلفة</span> — <span id="invCostProductName"></span></h3>
+      <div class="table-wrap plain">
+        <table class="tbl">
+          <thead><tr>
+            <th data-i18n="tbl.date">التاريخ</th>
+            <th data-i18n="inv.source">المصدر</th>
+            <th data-i18n="inv.qtyIn">كمية</th>
+            <th data-i18n="inv.unitCost">سعر الوحدة</th>
+            <th data-i18n="inv.prevCost">التكلفة قبل</th>
+            <th data-i18n="inv.newCost">التكلفة بعد</th>
+            <th data-i18n="mv.actor">المستخدم</th>
+          </tr></thead>
+          <tbody id="invCostBody"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn primary" id="invCostCloseBtn" data-i18n="common.close">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toasts" class="toasts"></div>
+  <script src="../shared/i18n.js"></script>
+  <script src="../shared/icons.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

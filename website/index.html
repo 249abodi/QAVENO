@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>QAVENO — Premium POS & Inventory Management</title>
+  <meta name="description" content="QAVENO is a premium POS, inventory, and business management system for modern retail. Offline-first, multi-branch, AI-powered."/>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-soft: #eef2ff;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+      --text: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(15,23,42,.08);
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); color: var(--text); background: var(--bg); line-height: 1.6; }
+    img { max-width: 100%; }
+    a { color: var(--primary); text-decoration: none; }
+
+    /* Nav */
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 24px; }
+    .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 22px; color: var(--text); }
+    .nav-brand img { height: 36px; width: 36px; border-radius: 8px; }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { color: var(--text-secondary); font-size: 15px; font-weight: 500; transition: color .15s; }
+    .nav-links a:hover { color: var(--primary); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 15px; border: none; cursor: pointer; transition: all .15s; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(99,102,241,.3); }
+    .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-whatsapp { background: #25d366; color: #fff; }
+    .btn-whatsapp:hover { background: #1da851; }
+    .btn-sm { padding: 8px 16px; font-size: 14px; }
+
+    /* Hero */
+    .hero { padding: 80px 24px 60px; text-align: center; background: linear-gradient(135deg, #eef2ff 0%, #faf5ff 50%, #f0fdf4 100%); }
+    .hero h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 800; line-height: 1.15; margin-bottom: 16px; }
+    .hero h1 span { background: linear-gradient(135deg, var(--primary), #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 18px; color: var(--text-secondary); max-width: 600px; margin: 0 auto 32px; }
+    .hero-ctas { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; background: var(--success-bg); color: var(--success); border-radius: 999px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
+
+    /* Sections */
+    section { padding: 80px 24px; }
+    .section-title { text-align: center; font-size: 36px; font-weight: 800; margin-bottom: 12px; }
+    .section-sub { text-align: center; color: var(--text-secondary); font-size: 17px; max-width: 600px; margin: 0 auto 48px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    /* Features grid */
+    .features { background: var(--surface); }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+    .feature-card { padding: 32px; border: 1px solid var(--border); border-radius: var(--radius); transition: all .2s; }
+    .feature-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); border-color: var(--primary); }
+    .feature-icon { font-size: 40px; margin-bottom: 16px; }
+    .feature-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { color: var(--text-secondary); font-size: 15px; }
+
+    /* Pricing */
+    .pricing { background: var(--bg); }
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    .price-card { background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); padding: 36px 28px; text-align: center; transition: all .2s; position: relative; }
+    .price-card.featured { border-color: var(--primary); box-shadow: 0 8px 32px rgba(99,102,241,.15); }
+    .price-card.featured::before { content: 'MOST POPULAR'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--primary); color: #fff; padding: 4px 16px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; }
+    .price-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .price-card .price { font-size: 42px; font-weight: 800; color: var(--primary); margin: 16px 0; }
+    .price-card .price small { font-size: 16px; color: var(--text-muted); font-weight: 500; }
+    .price-card ul { list-style: none; text-align: left; margin: 24px 0; }
+    .price-card li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-secondary); }
+    .price-card li::before { content: '✓ '; color: var(--success); font-weight: 700; }
+
+    /* CTA */
+    .cta { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; text-align: center; }
+    .cta h2 { font-size: 36px; font-weight: 800; margin-bottom: 12px; }
+    .cta p { font-size: 18px; opacity: .9; margin-bottom: 32px; max-width: 500px; margin-left: auto; margin-right: auto; }
+    .cta .btn { background: #fff; color: var(--primary); }
+    .cta .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+
+    /* Footer */
+    .footer { padding: 40px 24px; text-align: center; color: var(--text-muted); font-size: 14px; border-top: 1px solid var(--border); }
+    .footer a { color: var(--text-secondary); }
+
+    @media (max-width: 768px) {
+      .nav-links { gap: 16px; }
+      .nav-links a { display: none; }
+      section { padding: 48px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <img src="assets/logo.png" alt="QAVENO" onerror="this.style.display='none'"/>
+      QAVENO
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="https://wa.me/60175816193" target="_blank" class="btn btn-whatsapp btn-sm">WhatsApp</a>
+      <a href="#cta" class="btn btn-primary btn-sm">Start 1-Day Free Demo</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">🚀 Now available for Windows</div>
+  <h1>Run Your Business<br/>with <span>QAVENO</span></h1>
+  <p>Premium point-of-sale, inventory management, and business analytics — all in one powerful offline-first desktop application.</p>
+  <div class="hero-ctas">
+    <a href="#cta" class="btn btn-primary" style="padding:14px 32px;font-size:17px">Start 1-Day Free Demo</a>
+    <a href="https://wa.me/60175816193?text=Hi%20QAVENO%2C%20I%20want%20to%20learn%20more" target="_blank" class="btn btn-whatsapp" style="padding:14px 32px;font-size:17px">💬 Contact Sales</a>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features" class="features">
+  <div class="container">
+    <h2 class="section-title">Everything You Need</h2>
+    <p class="section-sub">Built for modern retail businesses that demand reliability, speed, and intelligence.</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🛒</div>
+        <h3>Point of Sale</h3>
+        <p>Lightning-fast checkout with barcode scanning, keyboard shortcuts, receipt printing, and offline support. Never lose a sale.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📦</div>
+        <h3>Inventory Management</h3>
+        <p>Real-time stock tracking, weighted average costing, reorder alerts, stock reconciliation, and complete audit trail.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏪</div>
+        <h3>Multi-Branch</h3>
+        <p>Manage unlimited branches with centralized control, inter-branch transfers, per-branch inventory, and role-based access.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Analytics & Reports</h3>
+        <p>Sales trends, profit analysis, product performance, branch comparison, and real-time dashboard with key business metrics.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📥</div>
+        <h3>Purchasing</h3>
+        <p>Purchase orders, goods receiving, supplier management, damaged goods tracking, and purchase history with full audit trail.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h3>Stock Transfers</h3>
+        <p>Inter-branch stock transfers with dispatch, receive, partial transfers, and weighted average cost blending across branches.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>AI Insights</h3>
+        <p>Smart demand forecasting, anomaly detection, auto-reorder suggestions, and slow-moving product identification.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📶</div>
+        <h3>Offline Mode</h3>
+        <p>Works completely offline with local SQLite database. Optional cloud sync when connected. Your data, always available.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <h3>Role-Based Access</h3>
+        <p>Owner, Admin, Manager, Cashier roles with 44+ granular permissions. Branch-level access control and full audit logging.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section id="pricing" class="pricing">
+  <div class="container">
+    <h2 class="section-title">Simple, Transparent Pricing</h2>
+    <p class="section-sub">Start free, upgrade when you need to. All prices in USD. No hidden fees.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3>1-Day Free Demo</h3>
+        <div class="price">$0<small> / 24 hours</small></div>
+        <ul>
+          <li>Full feature access</li>
+          <li>5 users included</li>
+          <li>2 branches</li>
+          <li>100 products</li>
+          <li>No credit card required</li>
+        </ul>
+        <a href="#cta" class="btn btn-outline" style="width:100%;justify-content:center">Start Free</a>
+      </div>
+      <div class="price-card featured">
+        <h3>Basic</h3>
+        <div class="price">$29<small> / month</small></div>
+        <ul>
+          <li>Core features</li>
+          <li>5 users</li>
+          <li>3 branches</li>
+          <li>500 products</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="https://wa.me/60175816193?text=Hi%2C%20I%20want%20to%20subscribe%20to%20Basic%20plan" target="_blank" class="btn btn-primary" style="width:100%;justify-content:center">Contact Sales</a>
+      </div>
+      <div class="price-card">
+        <h3>Pro</h3>
+        <div class="price">$79<small> / month</small></div>
+        <ul>
+          <li>All features</li>
+          <li>20 users</li>
+          <li>10 branches</li>
+          <li>5,000 products</li>
+          <li>AI Insights</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="https://wa.me/60175816193?text=Hi%2C%20I%20want%20to%20subscribe%20to%20Pro%20plan" target="_blank" class="btn btn-outline" style="width:100%;justify-content:center">Contact Sales</a>
+      </div>
+      <div class="price-card">
+        <h3>Enterprise</h3>
+        <div class="price">$199<small> / month</small></div>
+        <ul>
+          <li>Unlimited everything</li>
+          <li>Unlimited users</li>
+          <li>Unlimited branches</li>
+          <li>Unlimited products</li>
+          <li>AI Insights + custom</li>
+          <li>Dedicated support</li>
+        </ul>
+        <a href="https://wa.me/60175816193?text=Hi%2C%20I%20want%20to%20subscribe%20to%20Enterprise%20plan" target="_blank" class="btn btn-outline" style="width:100%;justify-content:center">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta" class="cta">
+  <div class="container">
+    <h2>Ready to Transform Your Business?</h2>
+    <p>Start your free 1-day demo today. No credit card required. Full access to all features.</p>
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+      <a href="https://wa.me/60175816193?text=Hi%20QAVENO%2C%20I%20want%20to%20start%20a%20free%20demo" target="_blank" class="btn btn-whatsapp" style="padding:14px 32px;font-size:17px">💬 Contact Sales on WhatsApp</a>
+    </div>
+    <p style="margin-top:16px;font-size:14px;opacity:.7">WhatsApp: +60 17-581 6193</p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <p style="margin-bottom:8px"><strong>QAVENO</strong> — Premium POS & Inventory Management</p>
+    <p>© 2026 QAVENO. All rights reserved.</p>
+    <p style="margin-top:8px"><a href="https://wa.me/60175816193" target="_blank">WhatsApp: +60 17-581 6193</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

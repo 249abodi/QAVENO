@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="QAVENO Owner Portal - إدارة المنظمات والخطط والتراخيص">
+    <meta name="keywords" content="QAVENO, owner portal, إدارة, منظمات, تراخيص">
+    <meta name="author" content="QAVENO">
+    <meta name="theme-color" content="#6366f1">
+    <title>QAVENO Owner Portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="login-logo">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                            <rect width="48" height="48" rx="12" fill="#6366f1"/>
+                            <path d="M14 16h20v4H14zM14 24h14v4H14zM14 32h20v4H14z" fill="white"/>
+                        </svg>
+                    </div>
+                    <h1>QAVENO Owner Portal</h1>
+                    <p>لوحة تحكم المالك</p>
+                </div>
+                <form id="login-form" class="login-form">
+                    <div class="form-group">
+                        <label for="username">اسم المستخدم</label>
+                        <input type="text" id="username" name="username" placeholder="أدخل اسم المستخدم" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">كلمة المرور</label>
+                        <input type="password" id="password" name="password" placeholder="أدخل كلمة المرور" required autocomplete="current-password">
+                    </div>
+                    <div id="login-error" class="login-error" style="display:none;"></div>
+                    <button type="submit" class="btn btn-primary btn-block" id="login-btn">
+                        <span class="btn-text">تسجيل الدخول</span>
+                        <span class="btn-loader" style="display:none;"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="app" style="display:none;">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+                        <rect width="48" height="48" rx="12" fill="#6366f1"/>
+                        <path d="M14 16h20v4H14zM14 24h14v4H14zM14 32h20v4H14z" fill="white"/>
+                    </svg>
+                    <span>QAVENO</span>
+                </div>
+                <button id="sidebar-close" class="sidebar-close" aria-label="إغلاق القائمة">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-tab="dashboard">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                    <span>لوحة التحكم</span>
+                </a>
+                <a href="#organizations" class="nav-item" data-tab="organizations">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 21h18M3 7v14M21 7v14M6 11h.01M6 15h.01M6 19h.01M10 11h.01M10 15h.01M10 19h.01M14 11h.01M14 15h.01M14 19h.01M18 11h.01M18 15h.01M18 19h.01M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/>
+                    </svg>
+                    <span>المنظمات</span>
+                </a>
+                <a href="#plans" class="nav-item" data-tab="plans">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        <path d="M9 14l2 2 4-4"/>
+                    </svg>
+                    <span>الخطط</span>
+                </a>
+                <a href="#licenses" class="nav-item" data-tab="licenses">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="6" width="20" height="12" rx="2"/>
+                        <path d="M12 12h.01M17 12h.01M7 12h.01"/>
+                    </svg>
+                    <span>التراخيص</span>
+                </a>
+                <a href="#usage" class="nav-item" data-tab="usage">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 20V10M12 20V4M6 20v-6"/>
+                    </svg>
+                    <span>الاستخدام</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logout-btn" class="btn btn-ghost btn-block">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+                    </svg>
+                    <span>تسجيل الخروج</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Overlay for mobile -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <button id="hamburger" class="hamburger" aria-label="فتح القائمة">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12h18M3 6h18M3 18h18"/>
+                    </svg>
+                </button>
+                <h2 id="page-title" class="page-title">لوحة التحكم</h2>
+                <div class="topbar-actions">
+                    <span id="user-info" class="user-info"></span>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Dashboard -->
+                <section id="page-dashboard" class="page active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-primary">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 21h18M3 7v14M21 7v14M6 11h.01M6 15h.01M6 19h.01M10 11h.01M10 15h.01M10 19h.01M14 11h.01M14 15h.01M14 19h.01M18 11h.01M18 15h.01M18 19h.01M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="stat-total-orgs">-</span>
+                                <span class="stat-label">إجمالي المنظمات</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-success">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                                    <polyline points="22 4 12 14.01 9 11.01"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="stat-active-orgs">-</span>
+                                <span class="stat-label">منظمات نشطة</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-warning">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="6" width="20" height="12" rx="2"/>
+                                    <path d="M12 12h.01M17 12h.01M7 12h.01"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="stat-active-licenses">-</span>
+                                <span class="stat-label">تراخيص نشطة</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-info">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="stat-recent-activity">-</span>
+                                <span class="stat-label">نشاط حديث</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>النشاط الأخير</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="recent-activity-list" class="activity-list">
+                                <div class="empty-state">جاري التحميل...</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Organizations -->
+                <section id="page-organizations" class="page">
+                    <div class="page-header">
+                        <h3>المنظمات</h3>
+                        <button class="btn btn-primary" onclick="App.showOrgDetail(null)">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14M5 12h14"/>
+                            </svg>
+                            إضافة منظمة
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>المعرف</th>
+                                        <th>الاسم</th>
+                                        <th>المدير</th>
+                                        <th>الحالة</th>
+                                        <th>تاريخ الإنشاء</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="organizations-table">
+                                    <tr><td colspan="6" class="empty-state">جاري التحميل...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Plans -->
+                <section id="page-plans" class="page">
+                    <div class="page-header">
+                        <h3>الخطط</h3>
+                        <button class="btn btn-primary" onclick="App.showPlanModal()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14M5 12h14"/>
+                            </svg>
+                            إضافة خطة
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>المعرف</th>
+                                        <th>الاسم</th>
+                                        <th>السعر</th>
+                                        <th>المستخدمين</th>
+                                        <th>الحالة</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="plans-table">
+                                    <tr><td colspan="6" class="empty-state">جاري التحميل...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Licenses -->
+                <section id="page-licenses" class="page">
+                    <div class="page-header">
+                        <h3>التراخيص</h3>
+                        <button class="btn btn-primary" onclick="App.showLicenseModal()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14M5 12h14"/>
+                            </svg>
+                            إنشاء ترخيص
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>المعرف</th>
+                                        <th>المفتاح</th>
+                                        <th>المنظمة</th>
+                                        <th>الخطة</th>
+                                        <th>الحالة</th>
+                                        <th>تاريخ الانتهاء</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="licenses-table">
+                                    <tr><td colspan="7" class="empty-state">جاري التحميل...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Usage -->
+                <section id="page-usage" class="page">
+                    <div class="page-header">
+                        <h3>الاستخدام</h3>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-primary">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="usage-total-users">-</span>
+                                <span class="stat-label">إجمالي المستخدمين</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-success">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="usage-api-calls">-</span>
+                                <span class="stat-label">استدعاءات API</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-warning">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="usage-storage">-</span>
+                                <span class="stat-label">المساحة المستخدمة</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-info">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="usage-active-sessions">-</span>
+                                <span class="stat-label">جلسات نشطة</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal-overlay" class="modal-overlay" style="display:none;">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <h3 id="modal-title"></h3>
+                <button class="modal-close" onclick="App.closeModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer" id="modal-footer"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

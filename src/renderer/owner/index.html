@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>مركز التحكم — لوحة التحكم</title>
+  <link rel="stylesheet" href="../shared/tokens.css"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">◆</span>
+        <span class="brand-text">لوحة التحكم</span>
+      </div>
+      <nav class="sidebar-nav" id="sidebarNav">
+        <button class="nav-item active" data-tab="dashboard">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">لوحة المعلومات</span>
+        </button>
+        <button class="nav-item" data-tab="organizations">
+          <span class="nav-icon">🏢</span>
+          <span class="nav-label">المؤسسات</span>
+        </button>
+        <button class="nav-item" data-tab="plans">
+          <span class="nav-icon">📦</span>
+          <span class="nav-label">الباقات</span>
+        </button>
+        <button class="nav-item" data-tab="licenses">
+          <span class="nav-icon">🔑</span>
+          <span class="nav-label">التراخيص</span>
+        </button>
+        <button class="nav-item" data-tab="usage">
+          <span class="nav-icon">📈</span>
+          <span class="nav-label">الاستخدام</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="owner-badge">
+          <span class="badge-dot"></span>
+          <span>المالك</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content" id="mainContent">
+      <header class="page-header" id="pageHeader">
+        <h1 class="page-title" id="pageTitle">لوحة المعلومات</h1>
+        <div class="header-actions" id="headerActions"></div>
+      </header>
+
+      <div class="content-body" id="contentBody">
+        <!-- Dashboard tab (default) -->
+        <div class="tab-panel active" id="panel-dashboard"></div>
+        <div class="tab-panel" id="panel-organizations"></div>
+        <div class="tab-panel" id="panel-plans"></div>
+        <div class="tab-panel" id="panel-licenses"></div>
+        <div class="tab-panel" id="panel-usage"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal overlay -->
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle"></h3>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer" id="modalFooter"></div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
