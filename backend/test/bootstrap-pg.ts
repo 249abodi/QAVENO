@@ -64,6 +64,12 @@ async function waitForPg(timeoutMs = 30000): Promise<void> {
 }
 
 async function ensurePg(): Promise<void> {
+  // GitHub Actions already provides PostgreSQL through a service container.
+  // Do not start the Windows embedded PostgreSQL on Linux CI.
+  if (process.env.CI === 'true' && process.env.POSTGRES_HOST) {
+    return;
+  }
+
   if (postgresProc) return;
   // kill stray test postgres instances from previous crashed runs (targeted)
   spawnSync('powershell', ['-NoProfile', '-Command',
