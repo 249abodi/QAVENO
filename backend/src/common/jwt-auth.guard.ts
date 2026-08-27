@@ -31,11 +31,12 @@ export class JwtAuthGuard implements CanActivate {
     if (!header || !header.startsWith('Bearer ')) throw Errors.unauthorized('مطلوب تسجيل الدخول');
     const token = header.slice(7).trim();
     let payload: { sub?: number };
-    try {
-      payload = await this.jwt.verifyAsync(token);
-    } catch {
-      throw Errors.unauthorized('انتهت صلاحية الجلسة');
-    }
+try {
+  payload = await this.jwt.verifyAsync(token);
+} catch (err) {
+  console.error('JWT VERIFY ERROR:', err);
+  throw Errors.unauthorized('انتهت صلاحية الجلسة');
+}
     const userId = Number(payload.sub);
     const rows = await this.ds.manager.query(
       `SELECT id, username, display_name, role, status FROM users WHERE id=$1`,
