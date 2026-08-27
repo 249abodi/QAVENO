@@ -20,9 +20,16 @@ function logoPath() {
 }
 
 function trackBinding(win) {
-  win.webContents.once('destroyed', () => auth.unbindWindow(win.webContents.id));
-}
+  const webContentsId = win.webContents.id;
 
+  win.webContents.once('destroyed', () => {
+    try {
+      auth.unbindWindow(webContentsId);
+    } catch (err) {
+      console.warn('[QAVENO] Failed to unbind destroyed window:', err.message);
+    }
+  });
+}
 function createCashierWindow() {
   cashierWindow = new BrowserWindow({
     width: 1360,
