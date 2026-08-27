@@ -402,15 +402,7 @@ function listUsers(actor) {
   ).all().map(publicUser);
 }
 
-/* ---------------- authentication & lockout ---------------- */
-
-const MAX_FAILED_ATTEMPTS = 5;
-const LOCK_MINUTES = 5;
-
-function lockedNow(row) {
-  if (!row.locked_until) return false;
-  return new Date(row.locked_until.replace(' ', 'T') + 'Z').getTime() > Date.now();
-}
+/* ---------------- authentication ---------------- */
 
 function authenticate(username, password) {
   assertReady();
@@ -421,22 +413,8 @@ function authenticate(username, password) {
     return { ok: false, reason: 'invalid' };
   }
   if (row.status !== 'active') return { ok: false, reason: 'disabled' };
-  if (lockedNow(row)) {
-    return { ok: false, reason: 'locked', until: row.locked_until };
-  }
   if (!verifyPassword(row.password_hash, String(password || ''))) {
-    const attempts = row.failed_attempts + 1;
-    const ddb = db.getDb();
-    if (attempts >= MAX_FAILED_ATTEMPTS) {
-      const until = new Date(Date.now() + LOCK_MINUTES * 60 * 1000)
-        .toISOString().slice(0, 19).replace('T', ' ');
-      ddb.prepare('UPDATE users SET failed_attempts = ?, locked_until = ? WHERE id = ?')
-        .run(attempts, until, row.id);
-      audit({ actorId: row.id, action: 'auth.locked', entity_type: 'user', entity_id: row.id, details: { attempts } });
-      return { ok: false, reason: 'locked', until };
-    }
-    ddb.prepare('UPDATE users SET failed_attempts = ? WHERE id = ?').run(attempts, row.id);
-    audit({ actorId: row.id, action: 'auth.failed', entity_type: 'user', entity_id: row.id, details: { attempts } });
+    audit({ actorId: row.id, action: 'auth.failed', entity_type: 'user', entity_id: row.id });
     return { ok: false, reason: 'invalid' };
   }
   db.getDb().prepare(

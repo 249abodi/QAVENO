@@ -13,6 +13,7 @@ const transfers = require('./transfers');
 const cloud = require('./cloud/client');
 const outbox = require('./cloud/outbox');
 const syncEngine = require('./cloud/sync');
+const dataPath = require('./data-path');
 
 function logoDataUrl() {
   const p = path.join(app.getAppPath(), 'assets', 'logo.png');
@@ -25,7 +26,7 @@ function logoDataUrl() {
 }
 
 function invoicesDir() {
-  return path.join(app.getAppPath(), 'data', 'invoices');
+  return dataPath.invoicesDir();
 }
 
 /* ---------------- authorization helpers ----------------
@@ -103,7 +104,7 @@ function register(getAdminWindow, hooks = {}, getOwnerWindowFn) {
     const pu = auth.setupOwner({ username, password, display_name });
     const { token } = auth.createSession(pu.id);
     auth.bindWindow(e.sender.id, token);
-    if (onLogin) onLogin(e.sender.id, pu);
+    if (onLogin) onLogin(e.sender.id, pu, token);
     return {
       user: pu,
       permissions: auth.permissionsOf({ role: pu.role, status: 'active' }),
@@ -114,14 +115,13 @@ function register(getAdminWindow, hooks = {}, getOwnerWindowFn) {
   ipcMain.handle('auth:login', (e, { username, password } = {}) => {
     const res = auth.authenticate(username, password);
     if (!res.ok) {
-      if (res.reason === 'locked') throw new Error(`الحساب مقفل مؤقتاً حتى ${res.until}`);
       if (res.reason === 'disabled') throw new Error('هذا الحساب معطل. راجع مدير النظام');
       // generic message: no user enumeration
       throw new Error('اسم المستخدم أو كلمة المرور غير صحيحة');
     }
     const { token } = auth.createSession(res.user.id);
     auth.bindWindow(e.sender.id, token);
-    if (onLogin) onLogin(e.sender.id, res.user);
+    if (onLogin) onLogin(e.sender.id, res.user, token);
     return {
       user: res.user,
       permissions: auth.permissionsOf(res.user),
@@ -700,7 +700,14 @@ function register(getAdminWindow, hooks = {}, getOwnerWindowFn) {
     if (win && !win.isDestroyed()) {
       try {
         auth.copyBinding(e.sender.id, win.webContents.id);
-        win.webContents.once('destroyed', () => auth.unbindWindow(win.webContents.id));
+        // Capture the id BEFORE 'destroyed': reading win.webContents.id inside
+        // the destroyed handler throws "Object has been destroyed".
+        const webContentsId = win.webContents.id;
+        win.webContents.once('destroyed', () => {
+          try {
+            auth.unbindWindow(webContentsId);
+          } catch { /* window already destroyed mid-flight */ }
+        });
       } catch { /* window raced closed */ }
     }
     return true;
@@ -712,7 +719,12 @@ function register(getAdminWindow, hooks = {}, getOwnerWindowFn) {
     if (win && !win.isDestroyed()) {
       try {
         auth.copyBinding(e.sender.id, win.webContents.id);
-        win.webContents.once('destroyed', () => auth.unbindWindow(win.webContents.id));
+        const webContentsId = win.webContents.id;
+        win.webContents.once('destroyed', () => {
+          try {
+            auth.unbindWindow(webContentsId);
+          } catch { /* window already destroyed mid-flight */ }
+        });
       } catch { /* window raced closed */ }
     }
     return true;
@@ -722,7 +734,12 @@ function register(getAdminWindow, hooks = {}, getOwnerWindowFn) {
   /* Housekeeping: drop bindings when any window dies */
   BrowserWindow.getAllWindows().forEach(w => {
     if (!w.isDestroyed()) {
-      w.webContents.once('destroyed', () => auth.unbindWindow(w.webContents.id));
+      const webContentsId = w.webContents.id;
+      w.webContents.once('destroyed', () => {
+        try {
+          auth.unbindWindow(webContentsId);
+        } catch { /* window already destroyed mid-flight */ }
+      });
     }
   });
 }

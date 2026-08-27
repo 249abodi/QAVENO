@@ -4,11 +4,8 @@ const { BrowserWindow } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const db = require('./db');
+const dataPath = require('./data-path');
 const { buildInvoiceHTML } = require('./invoice-template');
-
-function invoicesDir(appPath) {
-  return path.join(appPath, 'data', 'invoices');
-}
 
 function readLogoDataUrl(appPath) {
   const p = path.join(appPath, 'assets', 'logo.png');
@@ -46,7 +43,7 @@ async function generateInvoice(saleId, appPath) {
       margins: { marginType: 'custom', top: 0.4, bottom: 0.4, left: 0.4, right: 0.4 }
     });
 
-    const dir = invoicesDir(appPath);
+    const dir = dataPath.invoicesDir();
     fs.mkdirSync(dir, { recursive: true });
     const filePath = path.join(dir, `${sale.invoice_no}.pdf`);
     fs.writeFileSync(filePath, pdfBuffer);

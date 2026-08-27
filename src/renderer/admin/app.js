@@ -1466,10 +1466,10 @@ const BILLING_STATUS_MAP = {
 async function refreshBilling() {
   try {
     const [subRes, limitsRes, plansRes, historyRes] = await Promise.all([
-      window.billing.subscription(),
-      window.billing.limits(),
-      window.billing.plans(),
-      window.billing.history()
+      window.pos.billing.subscription(),
+      window.pos.billing.limits(),
+      window.pos.billing.plans(),
+      window.pos.billing.history()
     ]);
 
     // Current plan & status
@@ -1556,7 +1556,7 @@ async function refreshBilling() {
           const slug = btn.dataset.billingPlan;
           if (!confirm(t('billing.confirmUpgrade', { plan: slug }))) return;
           try {
-            await window.billing.subscribe(slug);
+            await window.pos.billing.subscribe(slug);
             toast(t('common.save'), '');
             refreshBilling();
           } catch (err) { toast(err.message, 'error'); }
@@ -1590,7 +1590,7 @@ async function refreshBilling() {
 $('billingRenewBtn').addEventListener('click', async () => {
   if (!confirm(t('billing.confirmRenew'))) return;
   try {
-    await window.billing.renew();
+    await window.pos.billing.renew();
     toast(t('common.save'), '');
     refreshBilling();
   } catch (err) { toast(err.message, 'error'); }
@@ -1599,7 +1599,7 @@ $('billingRenewBtn').addEventListener('click', async () => {
 $('billingCancelBtn').addEventListener('click', async () => {
   if (!confirm(t('billing.confirmCancel'))) return;
   try {
-    await window.billing.cancel('');
+    await window.pos.billing.cancel('');
     toast(t('common.save'), '');
     refreshBilling();
   } catch (err) { toast(err.message, 'error'); }
@@ -1640,12 +1640,12 @@ async function refreshAnalytics() {
   const params = axDateRange();
   try {
     const [dashRes, topRes, catRes, branchRes, salesTrendRes, profitTrendRes] = await Promise.all([
-      window.analytics.dashboard(params),
-      window.analytics.topProducts({ ...params, limit: 10 }),
-      window.analytics.categoryPerformance(params),
-      window.analytics.branchPerformance(params),
-      window.analytics.salesTrend(params),
-      window.analytics.profitTrend(params)
+      window.pos.analytics.dashboard(params),
+      window.pos.analytics.topProducts({ ...params, limit: 10 }),
+      window.pos.analytics.categoryPerformance(params),
+      window.pos.analytics.branchPerformance(params),
+      window.pos.analytics.salesTrend(params),
+      window.pos.analytics.profitTrend(params)
     ]);
 
     if (axIsDisabled(dashRes) || axIsDisabled(topRes)) {
@@ -1696,13 +1696,13 @@ $('analyticsFilterBtn').addEventListener('click', () => refreshAnalytics());
 $('analyticsRefreshBtn').addEventListener('click', () => refreshAnalytics());
 
 $('axExportSales').addEventListener('click', async () => {
-  try { await window.analytics.reportSales({ ...axDateRange(), pageSize: 10000 }); toast(t('analytics.exportSales'), ''); } catch (err) { toast(err.message, 'error'); }
+  try { await window.pos.analytics.reportSales({ ...axDateRange(), pageSize: 10000 }); toast(t('analytics.exportSales'), ''); } catch (err) { toast(err.message, 'error'); }
 });
 $('axExportProfit').addEventListener('click', async () => {
-  try { await window.analytics.reportProfit({ ...axDateRange(), pageSize: 10000 }); toast(t('analytics.exportProfit'), ''); } catch (err) { toast(err.message, 'error'); }
+  try { await window.pos.analytics.reportProfit({ ...axDateRange(), pageSize: 10000 }); toast(t('analytics.exportProfit'), ''); } catch (err) { toast(err.message, 'error'); }
 });
 $('axExportInventory').addEventListener('click', async () => {
-  try { await window.analytics.inventoryValuation(axDateRange()); toast(t('analytics.exportInventory'), ''); } catch (err) { toast(err.message, 'error'); }
+  try { await window.pos.analytics.inventoryValuation(axDateRange()); toast(t('analytics.exportInventory'), ''); } catch (err) { toast(err.message, 'error'); }
 });
 
 /* ---------------- AI Intelligence (Phase 32) ---------------- */
@@ -1724,7 +1724,7 @@ async function refreshAi() {
   }
 
   try {
-    const res = await window.ai.refresh();
+    const res = await window.pos.ai.refresh();
     if (!res) {
       for (const [id] of panels) $(id).innerHTML = `<div class="state-box"><span class="s">${escapeHtml(t('ai.noInsights'))}</span></div>`;
       return;
@@ -1880,7 +1880,7 @@ async function refreshConflicts() {
   if (!PERMS.has('settings.manage')) return;
   let list;
   try {
-    list = await window.cloud.conflictsList();
+    list = await window.pos.cloud.conflictsList();
   } catch (err) {
     if (isSessionErr(err)) return handleSessionLoss();
     toast(err.message, 'error');
@@ -1920,16 +1920,16 @@ function safeParse(s) {
 
 async function cfAct(kind, cid) {
   try {
-    if (kind === 'retry') await window.cloud.conflictsRetry(cid);
+    if (kind === 'retry') await window.pos.cloud.conflictsRetry(cid);
     else {
       const ok = await confirmDialog(
         kind === 'apply' ? 'cf.confirmApply' : 'cf.confirmKeep', {},
         kind === 'apply' ? 'cf.applyLocal' : 'cf.keepServer'
       );
       if (!ok) return;
-      await window.cloud.conflictResolve(cid, kind === 'apply' ? 'apply_local' : 'keep_server');
+      await window.pos.cloud.conflictResolve(cid, kind === 'apply' ? 'apply_local' : 'keep_server');
     }
-    await window.cloud.conflictsRefresh();
+    await window.pos.cloud.conflictsRefresh();
     await refreshConflicts();
     toast(t('common.saved'));
   } catch (err) {
@@ -1946,7 +1946,7 @@ $('conflictsBody').addEventListener('click', (e) => {
 
 $('conflictsRefreshBtn').addEventListener('click', async () => {
   try {
-    await window.cloud.conflictsRefresh();
+    await window.pos.cloud.conflictsRefresh();
     await refreshConflicts();
     toast(t('common.saved'));
   } catch (err) {
@@ -3112,14 +3112,11 @@ $('receiveForm').addEventListener('submit', async (e) => {
     return handleSessionLoss();
   }
 
-  // Check license/trial status
+  // Check license/trial status (informational only — never force-logout,
+  //   which previously kicked users out of the admin panel when no license
+  //   was active; licensing is enforced from the login gate instead)
   try {
     const licSt = await window.pos.license.status();
-    if (licSt.type === 'none' || (licSt.type === 'trial' && licSt.status === 'expired') || (licSt.type === 'license' && licSt.status === 'expired') || licSt.status === 'tampered' || licSt.status === 'suspended' || licSt.status === 'revoked') {
-      // Redirect to login for license activation
-      window.pos.auth.logout();
-      return;
-    }
     if (licSt.type === 'trial' && licSt.trial) {
       showTrialBanner(licSt.trial);
     }

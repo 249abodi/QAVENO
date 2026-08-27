@@ -6,6 +6,7 @@ const db = require('./db');
 const ipc = require('./ipc');
 const auth = require('./auth');
 const license = require('./license');
+const { dbPath } = require('./data-path');
 
 app.setName('QAVENO');
 
@@ -20,7 +21,16 @@ function logoPath() {
 }
 
 function trackBinding(win) {
-  win.webContents.once('destroyed', () => auth.unbindWindow(win.webContents.id));
+  // Capture the id BEFORE the 'destroyed' event: after the webContents is
+  // destroyed, reading win.webContents.id throws "Object has been destroyed".
+  const webContentsId = win.webContents.id;
+  win.webContents.once('destroyed', () => {
+    try {
+      auth.unbindWindow(webContentsId);
+    } catch {
+      /* window already destroyed mid-flight; nothing to unbind */
+    }
+  });
 }
 
 function createCashierWindow() {
@@ -126,16 +136,30 @@ function createLoginWindow() {
 }
 
 /* Called by ipc.js after successful auth: move the session from the login
-   window onto the newly created POS window, then dismiss the gate. */
-function handleAuthSuccess(loginWebContentsId) {
+   window onto the newly created POS window, then dismiss the gate.
+   The freshly minted session token is passed straight through and bound
+   directly to the new window, so the cashier can never be created unbound
+   (which previously produced an instant logout via auth:me -> null). */
+function handleAuthSuccess(loginWebContentsId, user, token) {
   const posWin = createCashierWindow();
   try {
-    auth.copyBinding(loginWebContentsId, posWin.webContents.id);
-  } catch { /* session vanished mid-flight; user re-logs */ }
+    auth.bindWindow(posWin.webContents.id, token);
+  } catch {
+    // never open an unbound cashier; fall back to the login gate
+    if (posWin && !posWin.isDestroyed()) posWin.destroy();
+    if (loginWindow && !loginWindow.isDestroyed()) loginWindow.focus();
+    return;
+  }
   if (loginWindow && !loginWindow.isDestroyed()) loginWindow.close();
 }
 
+let logoutInProgress = false;
+
 function handleLogout() {
+  // Destroying every window synchronously leaves a transient state with zero
+  // windows, which fires 'window-all-closed' -> app.quit(). Guard that during
+  // the logout tear-down so the replacement login window gets a chance to open.
+  logoutInProgress = true;
   for (const w of [cashierWindow, adminWindow, ownerWindow]) {
     if (w && !w.isDestroyed()) w.destroy();
   }
@@ -143,15 +167,16 @@ function handleLogout() {
   adminWindow = null;
   ownerWindow = null;
   createLoginWindow();
+  logoutInProgress = false;
 }
 
 app.whenReady().then(() => {
-  const dbPath = path.join(app.getAppPath(), 'data', 'pos.db');
-  db.init(dbPath);
+  const dbp = dbPath();
+  db.init(dbp);
   auth.init();
   license.init(db.getDb ? db.getDb() : null, app.getPath('userData'));
   license.register();
-  console.log('[QAVENO] Database ready at:', dbPath);
+  console.log('[QAVENO] Database ready at:', dbp);
 
   ipc.register(openAdminWindow, {
     onLogin: handleAuthSuccess,
@@ -166,7 +191,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  if (process.platform !== 'darwin' && !logoutInProgress) app.quit();
 });
 
 /* ── Auto-update (electron-updater) ──────────────────────────────── */

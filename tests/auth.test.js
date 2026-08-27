@@ -78,12 +78,10 @@ auth.init();
   const okAuth = auth.authenticate('owner', 'OwnerPass1!');
   assert(okAuth.ok === true && okAuth.user.id === owner.id, 'correct credentials accepted');
 
-  console.log('\n[E] Lockout after repeated failures');
-  for (let i = 0; i < 4; i++) auth.authenticate('owner', 'nope');
-  bad = auth.authenticate('owner', 'nope'); // 5th failure
-  assert(bad.ok === false && bad.reason === 'locked', '5th failure locks account');
-  assert(!!bad.until, 'lock carries unlock timestamp');
-  assert(auth.authenticate('owner', 'OwnerPass1!').reason === 'locked', 'correct password still blocked while locked');
+  console.log('\n[E] Repeated failures stay allowed (no lockout)');
+  for (let i = 0; i < 6; i++) auth.authenticate('owner', 'nope');
+  bad = auth.authenticate('owner', 'OwnerPass1!');
+  assert(bad.ok === true, 'correct password accepted even after many failures');
 
   console.log('\n[F] RBAC permission matrix');
   assert(auth.can(okAuth.user, 'users.manage'), 'owner can manage users');
@@ -174,7 +172,6 @@ auth.init();
   const actions = new Set(events.map(e => e.action));
   assert(actions.has('auth.login'), 'login audited');
   assert(actions.has('auth.failed'), 'failed login audited');
-  assert(actions.has('auth.locked'), 'lockout audited');
   assert(actions.has('user.create'), 'user creation audited');
   assert(actions.has('user.password_change'), 'password change audited');
   assert(actions.has('user.delete'), 'user deletion audited');
