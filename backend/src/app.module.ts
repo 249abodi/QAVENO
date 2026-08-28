@@ -48,6 +48,7 @@ import { OwnerModule } from './modules/owner/owner.module';
         username: String(cfg.get('database.user')),
         password: String(cfg.get('database.password') ?? ''),
         database: String(cfg.get('database.name')),
+        ssl: cfg.get('database.ssl'),
         entities: entitiesArray,
         synchronize: false,
       }),

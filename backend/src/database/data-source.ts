@@ -48,6 +48,10 @@ export function createDataSource(overrides: Partial<Record<string, unknown>> = {
     username: process.env.POSTGRES_USER || 'postgres',
     password: process.env.POSTGRES_PASSWORD || 'postgres',
     database: process.env.POSTGRES_DB || 'qaveno',
+    ssl:
+      process.env.NODE_ENV === 'production' && process.env.POSTGRES_SSL !== 'false'
+        ? { rejectUnauthorized: true }
+        : false,
     entities: entitiesArray,
     migrations: [__dirname + '/migrations/*{.ts,.js}'],
     synchronize: false,

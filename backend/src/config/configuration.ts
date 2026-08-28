@@ -47,6 +47,7 @@ export const configuration = () => {
       user: process.env.POSTGRES_USER || 'qaveno',
       password: dbPassword || 'qaveno',
       name: process.env.POSTGRES_DB || 'qaveno',
+      ssl: isProd && process.env.POSTGRES_SSL !== 'false' ? { rejectUnauthorized: true } : false,
     },
     jwt: {
       secret: process.env.JWT_SECRET || '',
