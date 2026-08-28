@@ -1,4 +1,9 @@
-const API_BASE = 'https://api.qaveno.com/api/v1';
+/* Production API base (matches owner-portal/vercel.json CSP connect-src).
+   Override at deploy time by setting window.QAVENO_API_OVERRIDE in index.html
+   before app.js loads; otherwise it falls back to the production URL. */
+const API_BASE =
+    window.QAVENO_API_OVERRIDE ||
+    'https://api.qaveno.com/api/v1';
 
 const App = {
     token: localStorage.getItem('qaveno_owner_token'),
@@ -50,6 +55,27 @@ const App = {
         this.switchTab(hash);
     },
 
+    // Map a failed request to a clear, user-safe Arabic message without
+    // exposing server internals, while keeping enough detail to debug.
+    describeError(status, raw) {
+        if (status === 0) {
+            // Network-level failure (DNS, connection refused, CORS, backend down).
+            return {
+                message: 'تعذر الوصول إلى الخادم. تأكد من أن الخادم يعمل وأن اتصال الإنترنت متاح.',
+                kind: 'network'
+            };
+        }
+        switch (status) {
+            case 401: return { message: 'بيانات الدخول غير صحيحة', kind: 'unauthorized' };
+            case 403: return { message: 'ليس لديك صلاحية للوصول إلى هذا المورد', kind: 'forbidden' };
+            case 404: return { message: 'المورد المطلوب غير موجود', kind: 'notfound' };
+            case 429: return { message: 'طلبات كثيرة جداً. حاول مرة أخرى لاحقاً.', kind: 'ratelimit' };
+            default:
+                if (status >= 500) return { message: 'حدث خطأ في الخادم، حاول مرة أخرى لاحقاً', kind: 'server' };
+                return { message: raw && raw !== '' ? raw : `خطأ ${status}`, kind: 'http' };
+        }
+    },
+
     async api(endpoint, options = {}) {
         const headers = {
             'Content-Type': 'application/json',
@@ -57,25 +83,30 @@ const App = {
             ...options.headers
         };
 
+        let res = null;
         try {
-            const res = await fetch(`${API_BASE}${endpoint}`, {
+            res = await fetch(`${API_BASE}${endpoint}`, {
                 ...options,
                 headers
             });
-
-            const data = await res.json().catch(() => ({}));
-
-            if (!res.ok) {
-                throw new Error(data.message || data.error || `خطأ ${res.status}`);
-            }
-
-            return data;
         } catch (err) {
-            if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-                throw new Error('خطأ في الاتصال بالخادم');
-            }
-            throw err;
+            // fetch throws a TypeError on DNS / connection / CORS failures.
+            throw new Error(this.describeError(0, null).message);
         }
+
+        let data = {};
+        try {
+            data = await res.json();
+        } catch {
+            data = {};
+        }
+
+        if (!res.ok) {
+            const msg = (data && (data.message || data.error)) || '';
+            throw new Error(this.describeError(res.status, msg).message);
+        }
+
+        return data;
     },
 
     async login() {

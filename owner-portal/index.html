@@ -367,6 +367,11 @@
     <!-- Toast -->
     <div id="toast-container" class="toast-container"></div>
 
+    <script>
+        // Deployment-time API configuration override.
+        // Set window.QAVENO_API_OVERRIDE to point at a custom backend before app.js loads.
+        window.QAVENO_API_OVERRIDE = window.QAVENO_API_OVERRIDE || '';
+    </script>
     <script src="app.js"></script>
 </body>
 </html>
