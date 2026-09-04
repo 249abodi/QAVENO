@@ -143,7 +143,10 @@ export class SyncService {
     const immutable = IMMUTABLE_FIELDS.filter((f) => payload[f] !== undefined);
     if (immutable.length) {
       const snapshot = rows(
-        await tx.query(`SELECT id, name, quantity, cost FROM products WHERE id=$1`, [productId]),
+        await tx.query(
+          `SELECT id, name, quantity, cost FROM products WHERE id=$1 AND organization_id=$2`,
+          [productId, meta.organizationId],
+        ),
       )[0] as Record<string, unknown> | undefined;
       const conflictId = await this.recordConflict(tx, {
         opId: meta.opId, deviceId: meta.deviceId, actorId: meta.actorId,
@@ -197,7 +200,10 @@ export class SyncService {
 
     // serialize on the row so concurrent pushes cannot interleave check+write
     const current = rows(
-      await tx.query(`SELECT version FROM products WHERE id=$1 FOR UPDATE`, [productId]),
+      await tx.query(
+        `SELECT version FROM products WHERE id=$1 AND organization_id=$2 FOR UPDATE`,
+        [productId, meta.organizationId],
+      ),
     )[0] as { version?: number } | undefined;
     if (!current) return { kind: 'rejected', code: 'NOT_FOUND' };
     const serverVersion = Math.trunc(Number(current.version ?? 1));
@@ -215,8 +221,8 @@ export class SyncService {
           localPayload: payload,
           serverSnapshot: rows(
             await tx.query(
-              `SELECT id, name, price, low_stock_threshold, reorder_qty, version FROM products WHERE id=$1`,
-              [productId],
+              `SELECT id, name, price, low_stock_threshold, reorder_qty, version FROM products WHERE id=$1 AND organization_id=$2`,
+              [productId, meta.organizationId],
             ),
           )[0] as Record<string, unknown>,
           conflictType: 'STALE_VERSION',
@@ -232,8 +238,8 @@ export class SyncService {
         localPayload: payload,
         serverSnapshot: rows(
           await tx.query(
-            `SELECT id, name, price, low_stock_threshold, reorder_qty, version FROM products WHERE id=$1`,
-            [productId],
+            `SELECT id, name, price, low_stock_threshold, reorder_qty, version FROM products WHERE id=$1 AND organization_id=$2`,
+            [productId, meta.organizationId],
           ),
         )[0] as Record<string, unknown>,
         conflictType: 'MISSING_BASE_VERSION',
@@ -244,10 +250,12 @@ export class SyncService {
 
     sets.push(`version = version + 1`);
 
+    const orgIdx = params.length + 1;
+    const updateParams = [...params, meta.organizationId];
     const updated = rows(
       await tx.query(
-        `UPDATE products SET ${sets.join(', ')}, updated_at=now() WHERE id=$1 RETURNING id`,
-        params,
+        `UPDATE products SET ${sets.join(', ')}, updated_at=now() WHERE id=$1 AND organization_id=$${orgIdx} RETURNING id`,
+        updateParams,
       ),
     );
     return updated.length ? { kind: 'applied' } : { kind: 'rejected', code: 'NOT_FOUND' };
@@ -339,7 +347,10 @@ export class SyncService {
   ) {
     return this.support.ds.transaction(async (tx) => {
       const c = rows(
-        await tx.query(`SELECT * FROM sync_conflicts WHERE conflict_id=$1 FOR UPDATE`, [conflictId]),
+        await tx.query(
+          `SELECT * FROM sync_conflicts WHERE conflict_id=$1 AND organization_id=$2 FOR UPDATE`,
+          [conflictId, ctx.organizationId],
+        ),
       )[0] as Record<string, any> | undefined;
       if (!c) throw new NotFoundException({ message: 'التعارض غير موجود', code: 'CONFLICT_NOT_FOUND' });
       if (c.status !== 'open') {
@@ -393,7 +404,10 @@ export class SyncService {
     if (dto.resolution === 'keep_server') {
       await this.support.ds.transaction(async (tx) => {
         const c = rows(
-          await tx.query(`SELECT * FROM sync_conflicts WHERE conflict_id=$1 FOR UPDATE`, [conflictId]),
+          await tx.query(
+            `SELECT * FROM sync_conflicts WHERE conflict_id=$1 AND organization_id=$2 FOR UPDATE`,
+            [conflictId, ctx.organizationId],
+          ),
         )[0] as Record<string, any> | undefined;
         if (!c) throw new NotFoundException({ message: 'التعارض غير موجود', code: 'CONFLICT_NOT_FOUND' });
         if (c.status !== 'open') {

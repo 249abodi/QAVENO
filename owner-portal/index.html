@@ -369,7 +369,9 @@
 
     <script>
         // Deployment-time API configuration override.
-        // Set window.QAVENO_API_OVERRIDE to point at a custom backend before app.js loads.
+        // The production default is https://qaveno-production.up.railway.app/api/v1
+        // (see app.js). Set window.QAVENO_API_OVERRIDE to point at a different
+        // backend before app.js loads.
         window.QAVENO_API_OVERRIDE = window.QAVENO_API_OVERRIDE || '';
     </script>
     <script src="app.js"></script>

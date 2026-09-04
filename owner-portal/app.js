@@ -3,7 +3,7 @@
    before app.js loads; otherwise it falls back to the production URL. */
 const API_BASE =
     window.QAVENO_API_OVERRIDE ||
-    'https://api.qaveno.com/api/v1';
+    'https://qaveno-production.up.railway.app/api/v1';
 
 const App = {
     token: localStorage.getItem('qaveno_owner_token'),

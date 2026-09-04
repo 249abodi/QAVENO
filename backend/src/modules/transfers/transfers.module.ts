@@ -41,6 +41,8 @@ export class TransfersService {
   async list(ctx: AuthContext, q: { status?: string }) {
     const params: unknown[] = [];
     let where = `WHERE 1=1`;
+    params.push(ctx.organizationId);
+    where += ` AND t.organization_id=$${params.length}`;
     if (!ctx.spansAll) {
       params.push(ctx.accessibleBranchIds);
       where += ` AND (t.source_branch_id = ANY($${params.length}) OR t.dest_branch_id = ANY($${params.length}))`;
@@ -69,8 +71,8 @@ export class TransfersService {
        FROM stock_transfers t
        JOIN branches sb ON sb.id=t.source_branch_id
        JOIN branches db ON db.id=t.dest_branch_id
-       WHERE t.id=$1`,
-      [id],
+       WHERE t.id=$1 AND t.organization_id=$2`,
+      [id, ctx.organizationId],
     );
     const t = head[0];
     if (!t) throw new NotFoundException({ message: 'التحويل غير موجود', code: 'NOT_FOUND' });
@@ -137,15 +139,18 @@ export class TransfersService {
     });
   }
 
-  private async loadForUpdate(tx, id: number) {
-    const rows = await tx.query(`SELECT * FROM stock_transfers WHERE id=$1 FOR UPDATE`, [id]);
+  private async loadForUpdate(tx, id: number, organizationId: number) {
+    const rows = await tx.query(
+      `SELECT * FROM stock_transfers WHERE id=$1 AND organization_id=$2 FOR UPDATE`,
+      [id, organizationId],
+    );
     if (!rows[0]) throw new NotFoundException({ message: 'التحويل غير موجود', code: 'NOT_FOUND' });
     return rows[0];
   }
 
   submit(ctx: AuthContext, id: number) {
     return this.support.ds.transaction(async (tx) => {
-      const t = await this.loadForUpdate(tx, id);
+      const t = await this.loadForUpdate(tx, id, ctx.organizationId);
       if (t.status !== 'draft') {
         throw new ConflictException({ message: 'الإرسال متاح من حالة المسودة فقط', code: 'INVALID_STATUS' });
       }
@@ -162,7 +167,7 @@ export class TransfersService {
 
   approve(ctx: AuthContext, id: number) {
     return this.support.ds.transaction(async (tx) => {
-      const t = await this.loadForUpdate(tx, id);
+      const t = await this.loadForUpdate(tx, id, ctx.organizationId);
       if (t.status !== 'submitted') {
         throw new ConflictException({ message: 'الاعتماد متاح من الحالة المرسلة فقط', code: 'INVALID_STATUS' });
       }
@@ -182,7 +187,7 @@ export class TransfersService {
 
   async dispatch(ctx: AuthContext, id: number, lines: DispatchLineDto[]) {
     const res = await this.support.ds.transaction(async (tx) => {
-      const t = await this.loadForUpdate(tx, id);
+      const t = await this.loadForUpdate(tx, id, ctx.organizationId);
       if (!['approved', 'dispatched'].includes(t.status)) {
         throw new ConflictException({
           message: 'الشحن متاح للأوامر المعتمدة أو المشحونة جزئياً',
@@ -287,7 +292,7 @@ export class TransfersService {
 
   async receive(ctx: AuthContext, id: number, lines: ReceiveLineDto[]) {
     const res = await this.support.ds.transaction(async (tx) => {
-      const t = await this.loadForUpdate(tx, id);
+      const t = await this.loadForUpdate(tx, id, ctx.organizationId);
       if (!['dispatched', 'partially_received'].includes(t.status)) {
         throw new ConflictException({
           message: 'الاستلام متاح بعد الشحن فقط',
@@ -389,7 +394,7 @@ export class TransfersService {
 
   async cancel(ctx: AuthContext, id: number, reason: string) {
     return this.support.ds.transaction(async (tx) => {
-      const t = await this.loadForUpdate(tx, id);
+      const t = await this.loadForUpdate(tx, id, ctx.organizationId);
       if (!['draft', 'submitted', 'approved'].includes(t.status)) {
         throw new ConflictException({ message: 'بدأ شحن التحويل — لا يمكن الإلغاء', code: 'DISPATCH_STARTED' });
       }

@@ -109,7 +109,12 @@ export class InventoryService {
     let res: { ok: true; quantity: number; reconId: number; branchId: number; productId: number };
     try {
       res = await this.support.ds.transaction(async (tx) => {
-        const recs = await tx.query(`SELECT * FROM stock_reconciliations WHERE id=$1 FOR UPDATE`, [reconId]);
+        const recs = await tx.query(
+          `SELECT r.* FROM stock_reconciliations r
+           JOIN products p ON p.id=r.product_id
+           WHERE r.id=$1 AND p.organization_id=$2 FOR UPDATE`,
+          [reconId, ctx.organizationId],
+        );
         const rec = recs[0];
         if (!rec) throw new NotFoundException({ message: 'الجرد غير موجود', code: 'NOT_FOUND' });
         if (rec.status !== 'open') {
@@ -179,7 +184,12 @@ export class InventoryService {
 
   cancelReconciliation(ctx: AuthContext, reconId: number) {
     return this.support.ds.transaction(async (tx) => {
-      const recs = await tx.query(`SELECT * FROM stock_reconciliations WHERE id=$1 FOR UPDATE`, [reconId]);
+      const recs = await tx.query(
+        `SELECT r.* FROM stock_reconciliations r
+         JOIN products p ON p.id=r.product_id
+         WHERE r.id=$1 AND p.organization_id=$2 FOR UPDATE`,
+        [reconId, ctx.organizationId],
+      );
       const rec = recs[0];
       if (!rec) throw new NotFoundException({ message: 'الجرد غير موجود', code: 'NOT_FOUND' });
       if (rec.status !== 'open') {
@@ -294,6 +304,8 @@ export class InventoryService {
     const size = Math.min(200, Math.max(1, Number(q.pageSize || 50)));
     const params: unknown[] = [];
     let where = `WHERE 1=1`;
+    params.push(ctx.organizationId);
+    where += ` AND p.organization_id=$${params.length}`;
     if (!ctx.spansAll) {
       params.push(ctx.accessibleBranchIds);
       where += ` AND (m.branch_id = ANY($${params.length}))`;
@@ -314,7 +326,9 @@ export class InventoryService {
       where += ` AND m.created_at <= ($${params.length})::timestamptz`;
     }
     const total = await em.query(
-      `SELECT COUNT(*)::int AS c FROM inventory_movements m ${where}`,
+      `SELECT COUNT(*)::int AS c FROM inventory_movements m
+       JOIN products p ON p.id=m.product_id
+       ${where}`,
       params,
     );
     params.push(size, (page - 1) * size);
@@ -338,17 +352,17 @@ export class InventoryService {
   }
 
   async costHistory(ctx: AuthContext, productId: number) {
-    void ctx;
     return this.support.ds.manager.query(
       `SELECT ch.*, s.name AS "supplierName", b.name AS "branchName", g.ref AS "grnRef",
               u.username AS "actorName"
        FROM cost_history ch
+       JOIN products p ON p.id=ch.product_id
        LEFT JOIN suppliers s ON s.id=ch.supplier_id
        LEFT JOIN branches b ON b.id=ch.branch_id
        LEFT JOIN grns g ON g.id=ch.grn_id
        LEFT JOIN users u ON u.id=ch.actor_id
-       WHERE ch.product_id=$1 ORDER BY ch.id DESC LIMIT 200`,
-      [productId],
+       WHERE ch.product_id=$1 AND p.organization_id=$2 ORDER BY ch.id DESC LIMIT 200`,
+      [productId, ctx.organizationId],
     );
   }
 }

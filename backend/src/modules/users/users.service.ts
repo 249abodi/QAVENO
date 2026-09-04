@@ -10,11 +10,22 @@ import { AuthContext } from '../../common/auth-context';
 export class UsersService {
   constructor(private readonly ds: DataSource, private readonly auth: AuthService) {}
 
-  private async activeOwnerCount(em: EntityManager): Promise<number> {
+  private async activeOwnerCount(em: EntityManager, organizationId: number): Promise<number> {
     const rows = await em.query(
-      `SELECT COUNT(*)::int AS c FROM users WHERE role='owner' AND status='active'`,
+      `SELECT COUNT(*)::int AS c FROM users u
+       JOIN organization_members om ON om.user_id=u.id AND om.organization_id=$1 AND om.status='active'
+       WHERE u.role='owner' AND u.status='active'`,
+      [organizationId],
     );
     return Number(rows[0]?.c || 0);
+  }
+
+  private async assertUserInOrg(em: EntityManager, userId: number, organizationId: number): Promise<void> {
+    const rows = await em.query(
+      `SELECT 1 FROM organization_members WHERE user_id=$1 AND organization_id=$2 AND status='active'`,
+      [userId, organizationId],
+    );
+    if (!rows[0]) throw new ConflictException({ message: 'المستخدم غير موجود', code: 'NOT_FOUND' });
   }
 
   async list(ctx: AuthContext): Promise<Record<string, unknown>[]> {
@@ -96,6 +107,7 @@ export class UsersService {
       const rows = await em.query(`SELECT * FROM users WHERE id=$1`, [id]);
       const user = rows[0];
       if (!user) throw new ConflictException({ message: 'المستخدم غير موجود', code: 'NOT_FOUND' });
+      await this.assertUserInOrg(em, id, o);
 
       const nextRole = input.role ?? user.role;
       const nextStatus = input.status ?? user.status;
@@ -104,7 +116,7 @@ export class UsersService {
         throw new ConflictException({ message: 'الحالة غير صالحة', code: 'BAD_STATUS' });
       }
       if (user.role === 'owner' && (nextRole !== 'owner' || nextStatus !== 'active')) {
-        const owners = await this.activeOwnerCount(em);
+        const owners = await this.activeOwnerCount(em, o);
         const selfIsOwner = user.role === 'owner' && user.status === 'active';
         if (selfIsOwner && owners <= 1) {
           throw new ConflictException({ message: 'لا يمكن تعطيل أو تخفيض آخر مالك نشط', code: 'LAST_OWNER' });
@@ -129,11 +141,12 @@ export class UsersService {
     });
   }
 
-  async resetPassword(id: number, newPassword: string, actorId: number): Promise<{ ok: true }> {
+  async resetPassword(id: number, newPassword: string, actorId: number, organizationId: number): Promise<{ ok: true }> {
     validateNewPassword(newPassword);
     return this.ds.transaction(async (em) => {
       const rows = await em.query(`SELECT id FROM users WHERE id=$1`, [id]);
       if (!rows[0]) throw new ConflictException({ message: 'المستخدم غير موجود', code: 'NOT_FOUND' });
+      await this.assertUserInOrg(em, id, organizationId);
       await em.query(
         `UPDATE users SET password_hash=$2, must_change_password=1, failed_attempts=0,
                 locked_until=NULL, updated_at=now() WHERE id=$1`,
@@ -141,25 +154,30 @@ export class UsersService {
       );
       await this.auth.revokeAllForUser(id);
       await em.query(
-        `INSERT INTO audit_log (actor_id, action, entity_type, entity_id)
-         VALUES ($1,'user.reset_password','user',$2)`,
-        [actorId, id],
+        `INSERT INTO audit_log (actor_id, action, entity_type, entity_id, organization_id)
+         VALUES ($1,'user.reset_password','user',$2,$3)`,
+        [actorId, id, organizationId],
       );
       return { ok: true as const };
     });
   }
 
-  async unlock(id: number, actorId: number): Promise<{ ok: true }> {
-    await this.ds.manager.query(
-      `UPDATE users SET failed_attempts=0, locked_until=NULL, updated_at=now() WHERE id=$1`,
-      [id],
-    );
-    await this.ds.manager.query(
-      `INSERT INTO audit_log (actor_id, action, entity_type, entity_id)
-       VALUES ($1,'user.unlock','user',$2)`,
-      [actorId, id],
-    );
-    return { ok: true };
+  async unlock(id: number, actorId: number, organizationId: number): Promise<{ ok: true }> {
+    return this.ds.transaction(async (em) => {
+      const rows = await em.query(`SELECT id FROM users WHERE id=$1`, [id]);
+      if (!rows[0]) throw new ConflictException({ message: 'المستخدم غير موجود', code: 'NOT_FOUND' });
+      await this.assertUserInOrg(em, id, organizationId);
+      await em.query(
+        `UPDATE users SET failed_attempts=0, locked_until=NULL, updated_at=now() WHERE id=$1`,
+        [id],
+      );
+      await em.query(
+        `INSERT INTO audit_log (actor_id, action, entity_type, entity_id, organization_id)
+         VALUES ($1,'user.unlock','user',$2,$3)`,
+        [actorId, id, organizationId],
+      );
+      return { ok: true };
+    });
   }
 
   private async saveBranchLinksTx(

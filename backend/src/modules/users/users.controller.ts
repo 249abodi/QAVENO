@@ -63,12 +63,12 @@ export class UsersController {
     @Body() dto: ResetPasswordDto,
     @CurrentAuth() ctx: AuthContext,
   ) {
-    return this.users.resetPassword(id, dto.newPassword, ctx.userId);
+    return this.users.resetPassword(id, dto.newPassword, ctx.userId, ctx.organizationId);
   }
 
   @Post(':id/unlock')
   @RequirePermission('users.manage')
   unlock(@Param('id', ParseIntPipe) id: number, @CurrentAuth() ctx: AuthContext) {
-    return this.users.unlock(id, ctx.userId);
+    return this.users.unlock(id, ctx.userId, ctx.organizationId);
   }
 }
