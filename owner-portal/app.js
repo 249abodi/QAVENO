@@ -279,17 +279,22 @@ const App = {
             return;
         }
 
-        tbody.innerHTML = orgs.map(org => `
+        tbody.innerHTML = orgs.map(item => {
+            const org = item.organization || item;
+            const orgId = org.id != null ? org.id : org._id;
+            const adminMember = (item.members || []).find(m => m.role === 'owner' || m.role === 'admin');
+            const adminName = (adminMember && adminMember.displayName) || org.admin?.name || org.adminName || org.admin || '-';
+            return `
             <tr>
-                <td>${org.id || org._id || '-'}</td>
+                <td>${orgId != null ? orgId : '-'}</td>
                 <td>${org.name || org.organizationName || '-'}</td>
-                <td>${org.admin?.name || org.adminName || org.admin || '-'}</td>
+                <td>${adminName}</td>
                 <td>${this.statusBadge(org.status)}</td>
                 <td>${this.formatDate(org.createdAt || org.created_at)}</td>
                 <td>
                     <div class="action-btns">
-                        <button class="btn btn-sm btn-ghost" onclick="App.showOrgDetail('${org.id || org._id}')">عرض</button>
-                        <select class="btn btn-sm" onchange="App.updateOrgStatus('${org.id || org._id}', this.value)" style="padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius); direction: rtl;">
+                        <button class="btn btn-sm btn-ghost" onclick="App.showOrgDetail('${orgId}')">عرض</button>
+                        <select class="btn btn-sm" onchange="App.updateOrgStatus('${orgId}', this.value)" style="padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius); direction: rtl;">
                             <option value="">تغيير الحالة</option>
                             <option value="active" ${org.status === 'active' ? 'disabled' : ''}>نشط</option>
                             <option value="suspended" ${org.status === 'suspended' ? 'disabled' : ''}>معلق</option>
@@ -297,8 +302,8 @@ const App = {
                         </select>
                     </div>
                 </td>
-            </tr>
-        `).join('');
+            </tr>`;
+        }).join('');
     },
 
     async showOrgDetail(id) {
@@ -325,13 +330,16 @@ const App = {
 
         try {
             const data = await this.api(`/owner/organizations/${id}`);
-            const org = data.data || data;
+            const item = data.data || data;
+            const org = item.organization || item;
+            const adminMember = (item.members || []).find(m => m.role === 'owner' || m.role === 'admin');
+            const adminName = (adminMember && adminMember.displayName) || org.admin?.name || org.adminName || org.admin || '-';
 
             this.showModal(`تفاصيل المنظمة: ${org.name || org.organizationName || ''}`, `
                 <div class="detail-grid">
                     <div class="detail-item">
                         <label>المعرف</label>
-                        <span>${org.id || org._id || '-'}</span>
+                        <span>${org.id != null ? org.id : (org._id || '-')}</span>
                     </div>
                     <div class="detail-item">
                         <label>الاسم</label>
@@ -339,11 +347,11 @@ const App = {
                     </div>
                     <div class="detail-item">
                         <label>المدير</label>
-                        <span>${org.admin?.name || org.adminName || org.admin || '-'}</span>
+                        <span>${adminName}</span>
                     </div>
                     <div class="detail-item">
                         <label>البريد الإلكتروني</label>
-                        <span>${org.email || org.admin?.email || '-'}</span>
+                        <span>${org.email || adminMember?.email || '-'}</span>
                     </div>
                     <div class="detail-item">
                         <label>الحالة</label>
@@ -355,11 +363,11 @@ const App = {
                     </div>
                     <div class="detail-item">
                         <label>عدد المستخدمين</label>
-                        <span>${org.userCount ?? org.users_count ?? '-'}</span>
+                        <span>${item.userCount ?? org.users_count ?? '-'}</span>
                     </div>
                     <div class="detail-item">
                         <label>الخطة</label>
-                        <span>${org.plan?.name || org.planName || '-'}</span>
+                        <span>${item.plan?.name || org.planName || '-'}</span>
                     </div>
                 </div>
             `, [
