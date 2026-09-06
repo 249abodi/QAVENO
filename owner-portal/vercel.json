@@ -1,12 +1,6 @@
 {
   "version": 2,
   "name": "qaveno-owner-portal",
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
