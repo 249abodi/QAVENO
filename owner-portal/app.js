@@ -16,7 +16,9 @@ const App = {
         } else {
             this.showLogin();
         }
-        this.handleHash();
+        // NOTE: no handleHash() here. Loading any tab would fire unauthenticated
+        // owner API calls from the login screen and surface a misleading 401 toast.
+        // Data loads only after auth succeeds (via showApp() -> handleHash()).
     },
 
     bindEvents() {
@@ -57,7 +59,7 @@ const App = {
 
     // Map a failed request to a clear, user-safe Arabic message without
     // exposing server internals, while keeping enough detail to debug.
-    describeError(status, raw) {
+    describeError(status, raw, endpoint = '') {
         if (status === 0) {
             // Network-level failure (DNS, connection refused, CORS, backend down).
             return {
@@ -66,7 +68,12 @@ const App = {
             };
         }
         switch (status) {
-            case 401: return { message: 'بيانات الدخول غير صحيحة', kind: 'unauthorized' };
+            case 401:
+                // A 401 on the login endpoint means wrong credentials; anywhere
+                // else it means the stored session is missing/expired/rejected.
+                return endpoint === '/auth/login'
+                    ? { message: 'اسم المستخدم أو كلمة المرور غير صحيحة', kind: 'unauthorized' }
+                    : { message: 'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مجدداً', kind: 'unauthorized' };
             case 403: return { message: 'ليس لديك صلاحية للوصول إلى هذا المورد', kind: 'forbidden' };
             case 404: return { message: 'المورد المطلوب غير موجود', kind: 'notfound' };
             case 429: return { message: 'طلبات كثيرة جداً. حاول مرة أخرى لاحقاً.', kind: 'ratelimit' };
@@ -103,7 +110,15 @@ const App = {
 
         if (!res.ok) {
             const msg = (data && (data.message || data.error)) || '';
-            throw new Error(this.describeError(res.status, msg).message);
+            const err = new Error(this.describeError(res.status, msg, endpoint).message);
+            err.status = res.status;
+            err.endpoint = endpoint;
+            if (res.status === 401 && endpoint !== '/auth/login') {
+                // A rejected session on any protected endpoint is fatal: clear the
+                // stored token and return to the login screen for a fresh sign-in.
+                this.logout();
+            }
+            throw err;
         }
 
         return data;
@@ -208,6 +223,9 @@ const App = {
     },
 
     async loadTab(tab) {
+        // Never fetch owner data without a valid session: unauthenticated calls
+        // would 401 and show a misleading error while the login screen is visible.
+        if (!this.token) return;
         switch (tab) {
             case 'dashboard': await this.loadDashboard(); break;
             case 'organizations': await this.loadOrganizations(); break;
@@ -233,13 +251,13 @@ const App = {
             const data = await this.api('/owner/dashboard');
             const stats = data.data || data;
 
-            document.getElementById('stat-total-orgs').textContent = stats.totalOrganizations ?? stats.total_orgs ?? '-';
-            document.getElementById('stat-active-orgs').textContent = stats.activeOrganizations ?? stats.active_orgs ?? '-';
+            document.getElementById('stat-total-orgs').textContent = stats.totalOrgs ?? stats.totalOrganizations ?? stats.total_orgs ?? '-';
+            document.getElementById('stat-active-orgs').textContent = stats.activeOrgs ?? stats.activeOrganizations ?? stats.active_orgs ?? '-';
             document.getElementById('stat-active-licenses').textContent = stats.activeLicenses ?? stats.active_licenses ?? '-';
-            document.getElementById('stat-recent-activity').textContent = stats.recentActivity ?? stats.recent_activity ?? '-';
 
-            const activities = stats.recentActivities || stats.activities || stats.recent_activity_list || [];
-            this.renderActivityList(activities);
+            const recent = stats.recentActivity ?? stats.recentActivities ?? stats.activities ?? stats.recent_activity_list ?? [];
+            document.getElementById('stat-recent-activity').textContent = Array.isArray(recent) ? recent.length : (recent ?? '-');
+            this.renderActivityList(Array.isArray(recent) ? recent : []);
         } catch (err) {
             this.toast('خطأ في تحميل لوحة التحكم: ' + err.message, 'error');
         }
@@ -254,8 +272,8 @@ const App = {
 
         container.innerHTML = activities.map(a => `
             <div class="activity-item">
-                <div class="activity-dot ${a.type || 'primary'}"></div>
-                <div class="activity-text">${a.message || a.description || a.text || ''}</div>
+                <div class="activity-dot ${a.type || a.action || 'primary'}"></div>
+                <div class="activity-text">${a.reason || a.message || this.historyLabel(a.action) || a.description || a.text || a.action || ''}</div>
                 <div class="activity-time">${this.formatDate(a.createdAt || a.created_at || a.timestamp)}</div>
             </div>
         `).join('');
