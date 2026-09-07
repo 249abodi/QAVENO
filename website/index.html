@@ -43,6 +43,8 @@
     .btn-whatsapp { background: #25d366; color: #fff; }
     .btn-whatsapp:hover { background: #1da851; }
     .btn-sm { padding: 8px 16px; font-size: 14px; }
+    .btn-download { background: var(--success); color: #fff; padding: 16px 40px; font-size: 18px; }
+    .btn-download:hover { background: #15803d; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(22,163,74,.3); }
 
     /* Hero */
     .hero { padding: 80px 24px 60px; text-align: center; background: linear-gradient(135deg, #eef2ff 0%, #faf5ff 50%, #f0fdf4 100%); }
@@ -54,6 +56,13 @@
 
     /* Sections */
     section { padding: 80px 24px; }
+    .download { background: var(--surface); text-align: center; }
+    .download-card { max-width: 640px; margin: 0 auto; padding: 48px 32px; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .download-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; background: var(--success-bg); color: var(--success); border-radius: 999px; font-size: 13px; font-weight: 600; margin-bottom: 16px; }
+    .download-card h2 { font-size: 30px; font-weight: 800; margin-bottom: 12px; }
+    .download-card p { color: var(--text-secondary); font-size: 16px; margin-bottom: 28px; max-width: 460px; margin-left: auto; margin-right: auto; }
+    .download-meta { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-top: 24px; color: var(--text-muted); font-size: 14px; }
+    .download-ar { display: block; margin-top: 12px; font-size: 14px; color: var(--text-muted); }
     .section-title { text-align: center; font-size: 36px; font-weight: 800; margin-bottom: 12px; }
     .section-sub { text-align: center; color: var(--text-secondary); font-size: 17px; max-width: 600px; margin: 0 auto 48px; }
     .container { max-width: 1200px; margin: 0 auto; }
@@ -110,8 +119,9 @@
     <div class="nav-links">
       <a href="#features">Features</a>
       <a href="#pricing">Pricing</a>
+      <a href="#download">Download</a>
       <a href="https://wa.me/60175816193" target="_blank" class="btn btn-whatsapp btn-sm">WhatsApp</a>
-      <a href="#cta" class="btn btn-primary btn-sm">Start 1-Day Free Demo</a>
+      <a href="#download" class="btn btn-primary btn-sm">Download Free</a>
     </div>
   </div>
 </nav>
@@ -122,8 +132,26 @@
   <h1>Run Your Business<br/>with <span>QAVENO</span></h1>
   <p>Premium point-of-sale, inventory management, and business analytics — all in one powerful offline-first desktop application.</p>
   <div class="hero-ctas">
-    <a href="#cta" class="btn btn-primary" style="padding:14px 32px;font-size:17px">Start 1-Day Free Demo</a>
+    <a href="#download" class="btn btn-primary" style="padding:14px 32px;font-size:17px">Download Free for 24 Hours</a>
     <a href="https://wa.me/60175816193?text=Hi%20QAVENO%2C%20I%20want%20to%20learn%20more" target="_blank" class="btn btn-whatsapp" style="padding:14px 32px;font-size:17px">💬 Contact Sales</a>
+  </div>
+</section>
+
+<!-- Download -->
+<section id="download" class="download">
+  <div class="container">
+    <div class="download-card">
+      <div class="download-badge">🖥️ Windows 10/11</div>
+      <h2>Download QAVENO for Windows</h2>
+      <p>Get the full desktop application — free for your first 24 hours. No credit card required.</p>
+      <a href="https://github.com/249abodi/QAVENO/releases/download/v1.0.6/QAVENO-Setup-1.0.0.exe" class="btn btn-download">⬇ Download Installer (.exe)</a>
+      <span class="download-ar" dir="rtl">تحميل QAVENO لنظام Windows مجانًا لمدة 24 ساعة</span>
+      <div class="download-meta">
+        <span>💻 Offline-first</span>
+        <span>⏱️ Trial valid for 24 hours</span>
+        <span>🖥️ Windows 10/11</span>
+      </div>
+    </div>
   </div>
 </section>
 

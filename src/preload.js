@@ -132,6 +132,7 @@ contextBridge.exposeInMainWorld('pos', {
     status: () => ipcRenderer.invoke('license:status'),
     activate: (licenseCode, organizationId, cloudApiBase) => ipcRenderer.invoke('license:activate', { licenseCode, organizationId, cloudApiBase }),
     startTrial: (cloudApiBase, organizationId) => ipcRenderer.invoke('license:start-trial', { cloudApiBase, organizationId }),
+    revalidate: (cloudApiBase, organizationId) => ipcRenderer.invoke('license:revalidate', { cloudApiBase, organizationId }),
     clear: () => ipcRenderer.invoke('license:clear'),
     startPeriodicValidation: (cloudApiBase, organizationId) => ipcRenderer.invoke('license:start-periodic-validation', { cloudApiBase, organizationId })
   },

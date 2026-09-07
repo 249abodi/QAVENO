@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' 'unsafe-hashes'; script-src 'self'; img-src 'self' data:;" />
   <title data-i18n="app.adminTitle">لوحة الإدارة — المخزون والمبيعات</title>
   <!-- Shared design system -->
   <link rel="stylesheet" href="../shared/tokens.css" />
@@ -530,7 +530,7 @@
       <form id="settingsForm">
         <label><span data-i18n="settings.storeName">اسم المتجر</span><input name="store_name" type="text" required /></label>
         <label><span data-i18n="settings.taxRate">نسبة الضريبة %</span><input name="tax_rate" type="number" min="0" max="100" step="0.01" required /></label>
-        <label><span data-i18n="settings.currency">رمز العملة</span><input name="currency" type="text" required /></label>
+        <label><span data-i18n="settings.currency">العملة</span><select name="currency" required></select></label>
         <button type="submit" class="btn primary" data-i18n="settings.save">حفظ الإعدادات</button>
       </form>
       <p class="hint" data-i18n="settings.hint">تُطبق نسبة الضريبة فوراً على شاشة الكاشير وعلى الفواتير الجديدة.</p>
@@ -1312,6 +1312,7 @@
   <div id="toasts" class="toasts"></div>
   <script src="../shared/i18n.js"></script>
   <script src="../shared/icons.js"></script>
+  <script src="../shared/currencies.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

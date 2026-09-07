@@ -3,7 +3,7 @@
 const $ = (id) => document.getElementById(id);
 const t = (key, params) => window.i18n.t(key, params);
 
-let settings = { store_name: 'متجري', tax_rate: '15', currency: 'ر.س', lang: 'ar', theme: 'light' };
+let settings = { store_name: 'متجري', tax_rate: '15', currency: 'ر.س', currency_code: 'SAR', lang: 'ar', theme: 'light' };
 let editingProductId = null;
 let restockProductId = null;
 
@@ -1274,6 +1274,26 @@ function fillCategorySelects() {
 
 /* ---------------- Settings ---------------- */
 
+function populateCurrencySelect(f) {
+  const sel = f.currency;
+  if (!sel || sel.options.length) return;
+  const list = window.CURRENCIES || [];
+  for (const c of list) {
+    const opt = document.createElement('option');
+    opt.value = c.code;
+    opt.textContent = `${c.nameAr} (${c.code}) — ${c.symbol} — ${c.nameEn}`;
+    sel.appendChild(opt);
+  }
+}
+
+function currentCurrencyCode() {
+  if (settings.currency_code && (window.CURRENCIES || []).some(c => c.code === settings.currency_code)) {
+    return settings.currency_code;
+  }
+  const bySymbol = (window.CURRENCIES || []).find(c => c.symbol === settings.currency);
+  return bySymbol ? bySymbol.code : 'SAR';
+}
+
 async function loadSettingsForm() {
   settings = await window.pos.settings.get();
   $('storeName').textContent = settings.store_name;
@@ -1281,16 +1301,20 @@ async function loadSettingsForm() {
   const f = $('settingsForm');
   f.store_name.value = settings.store_name;
   f.tax_rate.value = settings.tax_rate;
-  f.currency.value = settings.currency;
+  populateCurrencySelect(f);
+  f.currency.value = currentCurrencyCode();
 }
 
 $('settingsForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = e.target;
   try {
-    for (const key of ['store_name', 'tax_rate', 'currency']) {
+    for (const key of ['store_name', 'tax_rate']) {
       await window.pos.settings.set(key, f[key].value);
     }
+    const entry = (window.CURRENCIES || []).find(c => c.code === f.currency.value);
+    await window.pos.settings.set('currency', entry ? entry.symbol : f.currency.value);
+    await window.pos.settings.set('currency_code', f.currency.value);
     toast(t('toast.saved'), 'success');
     loadSettingsForm();
   } catch (err) {
@@ -2709,6 +2733,7 @@ $('supplierForm').addEventListener('submit', async (e) => {
 let editingPoId = null;
 let poCache = [];
 let poDraftLines = [];
+let receivePo = null;
 
 function poStatusBadge(s) {
   return `<span class="status-badge st-${s}">${escapeHtml(t('po.st.' + s))}</span>`;

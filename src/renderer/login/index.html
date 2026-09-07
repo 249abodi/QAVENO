@@ -89,7 +89,7 @@
           </button>
 
           <button type="button" id="trialBtn" class="btn ghost block" style="margin-top:8px">
-            <span>ابدأ التجربة المجانية (14 يوماً)</span>
+            <span>ابدأ التجربة المجانية (24 ساعة)</span>
           </button>
 
           <button type="button" id="skipBtn" class="btn ghost block" style="margin-top:4px;font-size:12px;color:var(--text-muted)">
@@ -103,6 +103,41 @@
           <p id="licActiveInfo" style="color:var(--text-muted);margin-bottom:16px"></p>
           <button type="button" id="goAppBtn" class="btn primary">الذهاب للتطبيق</button>
         </div>
+      </div>
+
+      <!-- License lock screen (expired / suspended / revoked / tampered) -->
+      <div id="lockScreen" class="hidden">
+        <div class="brand">
+          <img id="brandLogo3" class="brand-logo" alt="QAVENO" src="../shared/logo.svg" />
+        </div>
+
+        <h1 data-i18n="login.lock.title">تم إيقاف الوصول إلى QAVENO</h1>
+        <p data-i18n="login.lock.sub" class="lic-sub" style="margin-bottom:16px">انتهت صلاحية رخصة أو تجربة هذا الجهاز. تواصل مع مدير النظام لتمديدها.</p>
+
+        <div class="lock-info">
+          <div class="field">
+            <label data-i18n="login.lock.orgId">معرّف المنظمة</label>
+            <div class="lock-value" id="lockOrgId" dir="ltr">—</div>
+          </div>
+          <div class="field">
+            <label data-i18n="login.lock.status">حالة الترخيص</label>
+            <div class="lock-value" id="lockStatus">—</div>
+          </div>
+          <div class="field">
+            <label data-i18n="login.lock.expires">تاريخ/وقت الانتهاء</label>
+            <div class="lock-value" id="lockExpires">—</div>
+          </div>
+        </div>
+
+        <p id="lockErr" class="err" role="alert" hidden></p>
+
+        <button type="button" id="lockContactBtn" class="btn ghost block">
+          <span data-i18n="login.lock.contactAdmin">تواصل مع مدير النظام — نسخ المعلومات</span>
+        </button>
+
+        <button type="button" id="lockRetryBtn" class="btn primary block" style="margin-top:8px">
+          <span data-i18n="login.lock.retry">إعادة فحص الآن (بعد التمديد)</span>
+        </button>
       </div>
     </section>
   </main>

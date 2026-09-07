@@ -130,6 +130,7 @@ function seed(dbRef) {
     ['store_name', 'متجري'],
     ['tax_rate', '15'],
     ['currency', 'ر.س'],
+    ['currency_code', 'SAR'],
     ['invoice_seq', '0'],
     ['lang', 'ar'],
     ['theme', 'light']

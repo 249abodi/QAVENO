@@ -720,6 +720,14 @@ body {
     min-width: 100px;
 }
 
+/* Trial quick-extend actions */
+.trial-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.trial-actions .btn { flex: 1 1 auto; }
+
 /* Form in page */
 .page-form .form-group {
     margin-bottom: 16px;

@@ -674,7 +674,7 @@ function register(getAdminWindow, hooks = {}, getOwnerWindowFn) {
     if (!prefs.includes(key)) perm(e, 'settings.manage');
     else perm(e, 'settings.prefs');
 
-    const allowed = ['store_name', 'tax_rate', 'currency', 'lang', 'theme'];
+    const allowed = ['store_name', 'tax_rate', 'currency', 'currency_code', 'lang', 'theme'];
     if (!allowed.includes(key)) throw new Error('إعداد غير مسموح به');
 
     const before = key === 'lang' || key === 'theme' ? null : db.getSettings()[key];

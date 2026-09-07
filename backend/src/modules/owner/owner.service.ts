@@ -345,11 +345,15 @@ export class OwnerService {
     const sub = await this.subRepo.findOneBy({ id: subId });
     if (!sub) throw new NotFoundException({ message: 'الترخيص غير موجود', code: 'LICENSE_NOT_FOUND' });
 
-    // Allow extending expired or suspended if force=true; otherwise only active
-    if (!opts?.force && sub.status !== 'active') {
+    // Owner actions: active licenses, and trial subscriptions (trialing / expired /
+    // past_due / suspended) can be extended directly. Revoked / cancelled need force.
+    const extendable = ['active', 'trialing', 'past_due', 'suspended', 'expired'];
+    if (!opts?.force && !extendable.includes(sub.status)) {
       throw new ConflictException({
-        message: 'لا يمكن تمديد ترخيص غير نشط. استخدم force=true للإعادة.',
-        code: 'LICENSE_NOT_ACTIVE',
+        message: sub.status === 'revoked'
+          ? 'لا يمكن تمديد ترخيص ملغى'
+          : 'لا يمكن تمديد ترخيص بحالة ' + sub.status + '. استخدم force=true للإعادة.',
+        code: sub.status === 'revoked' ? 'LICENSE_REVOKED' : 'LICENSE_NOT_ACTIVE',
       });
     }
 
@@ -361,9 +365,18 @@ export class OwnerService {
       : new Date();
     sub.currentPeriodEndsAt = new Date(base.getTime() + days * 86400_000);
 
-    // If extending an expired license, reactivate it
+    // Trial subscriptions keep trial_end_at authoritative (trial/validate reads it).
+    // Extend from the trial end or now, whichever is later.
+    if (sub.status === 'trialing' || sub.trialEndsAt) {
+      const trialBase = sub.trialEndsAt && sub.trialEndsAt.getTime() > Date.now()
+        ? sub.trialEndsAt
+        : new Date();
+      sub.trialEndsAt = new Date(trialBase.getTime() + days * 86400_000);
+    }
+
+    // If extending an expired license, reactivate it (a trial returns to trialing)
     if (sub.status === 'expired' || sub.status === 'cancelled') {
-      sub.status = 'active';
+      sub.status = sub.trialEndsAt ? 'trialing' : 'active';
       await this.orgRepo.update(sub.organizationId, { status: 'active', updatedAt: new Date() });
     }
 
@@ -493,8 +506,43 @@ export class OwnerService {
     return this.subRepo.findOne({ where: { licenseCode: code.toUpperCase() } });
   }
 
-  async getAllLicenses(): Promise<OrganizationSubscription[]> {
-    return this.subRepo.find({ order: { createdAt: 'DESC' } });
+  async getAllLicenses(): Promise<Array<OrganizationSubscription & {
+    organizationName: string | null;
+    planName: string | null;
+    trialStatus: string;
+    trialExpiresAt: string | null;
+    trialRemainingMs: number | null;
+    expiresAt: string | null;
+  }>> {
+    const subs = await this.subRepo.find({ order: { createdAt: 'DESC' } });
+
+    const orgIds = [...new Set(subs.map(s => s.organizationId))];
+    const planIds = [...new Set(subs.map(s => s.planId))];
+    const orgs = orgIds.length ? await this.orgRepo.find({ where: { id: In(orgIds) } }) : [];
+    const plans = planIds.length ? await this.planRepo.find({ where: { id: In(planIds) } }) : [];
+    const orgMap = new Map(orgs.map(o => [o.id, o]));
+    const planMap = new Map(plans.map(p => [p.id, p]));
+
+    const now = Date.now();
+    return subs.map(s => {
+      const isTrial = s.status === 'trialing' || !!s.trialEndsAt;
+      const trialEnds = s.trialEndsAt ? s.trialEndsAt.getTime() : null;
+      const trialStatus = isTrial
+        ? (s.status === 'active'
+            ? 'active'
+            : trialEnds && trialEnds <= now ? 'expired' : (s.status === 'trialing' ? 'trialing' : s.status))
+        : s.status;
+
+      return {
+        ...s,
+        organizationName: orgMap.get(s.organizationId)?.name ?? null,
+        planName: planMap.get(s.planId)?.name ?? null,
+        trialStatus,
+        trialExpiresAt: trialEnds ? new Date(trialEnds).toISOString() : null,
+        trialRemainingMs: trialEnds ? Math.max(0, trialEnds - now) : null,
+        expiresAt: s.currentPeriodEndsAt ? s.currentPeriodEndsAt.toISOString() : null,
+      };
+    });
   }
 
   // ── Usage stats ────────────────────────────────────────────────────

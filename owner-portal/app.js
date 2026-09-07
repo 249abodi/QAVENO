@@ -580,28 +580,129 @@ const App = {
             return;
         }
 
-        tbody.innerHTML = licenses.map(lic => `
+        tbody.innerHTML = licenses.map(lic => {
+            const displayStatus = lic.trialStatus || lic.status;
+            // Fall back to field variants depending on backend serialization
+            const orgName = lic.organizationName || lic.organization?.name || lic.orgName || lic.organization_id || '-';
+            const planName = lic.planName || lic.plan?.name || lic.planNameFallback || lic.plan_id || '-';
+            const exp = lic.trialExpiresAt || lic.expiresAt || lic.expires_at || lic.endDate;
+            const id = lic.id ?? lic._id ?? lic.subscriptionId;
+            return `
             <tr>
-                <td>${lic.id || lic._id || '-'}</td>
-                <td style="font-family: monospace; font-size: 12px;">${lic.key || lic.licenseKey || lic.license_key || '-'}</td>
-                <td>${lic.organization?.name || lic.orgName || lic.org_id || '-'}</td>
-                <td>${lic.plan?.name || lic.planName || '-'}</td>
-                <td>${this.statusBadge(lic.status)}</td>
-                <td>${this.formatDate(lic.expiresAt || lic.expires_at || lic.endDate)}</td>
+                <td>${id ?? '-'}</td>
+                <td style="font-family: monospace; font-size: 12px;">${lic.licenseCode || lic.key || lic.license_key || (lic.type === 'trial' ? 'Trial' : '-')}</td>
+                <td>${orgName}</td>
+                <td>${planName}</td>
+                <td>${this.statusBadge(displayStatus)}</td>
+                <td>${this.formatDate(exp)}</td>
                 <td>
                     <div class="action-btns">
-                        <select class="btn btn-sm" onchange="App.licenseAction('${lic.id || lic._id}', this.value); this.value='';" style="padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius); direction: rtl;">
+                        <button class="btn btn-sm" onclick="App.showLicenseDetail('${id}')">تفاصيل</button>
+                        <select class="btn btn-sm" onchange="App.licenseAction('${id}', this.value); this.value='';" style="padding:4px 8px;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);direction:rtl;">
                             <option value="">إجراءات</option>
-                            <option value="extend" ${lic.status === 'active' ? '' : 'disabled'}>تمديد</option>
-                            <option value="suspend" ${lic.status === 'active' ? '' : 'disabled'}>تعليق</option>
-                            <option value="reactivate" ${lic.status === 'suspended' ? '' : 'disabled'}>إعادة تنشيط</option>
-                            <option value="revoke" ${lic.status === 'revoked' ? 'disabled' : ''}>إلغاء</option>
-                            <option value="change-plan">تغيير الخطة</option>
+                            <option value="extend">تمديد</option>
+                            <option value="suspend" ${displayStatus === 'active' || displayStatus === 'trialing' ? '' : 'disabled'}>تعليق</option>
+                            <option value="reactivate" ${displayStatus === 'suspended' ? '' : 'disabled'}>إعادة تنشيط</option>
+                            <option value="revoke">إلغاء</option>
                         </select>
                     </div>
                 </td>
-            </tr>
-        `).join('');
+            </tr>`;
+        }).join('');
+
+        // Remember rows for the detail modal
+        this._licenses = licenses;
+    },
+
+    /** Optional inline dataset lookup for a license by id. */
+    _licenses: [],
+
+    async showLicenseDetail(id) {
+        const lic = (this._licenses || []).find(l => String(l.id ?? l._id) === String(id));
+        if (!lic) {
+            this.toast('تعذر العثور على تفاصيل الترخيص', 'error');
+            return;
+        }
+
+        const displayStatus = lic.trialStatus || lic.status;
+        const trial = lic.type === 'trial' || lic.trialEndsAt || displayStatus === 'trialing';
+        const orgName = lic.organizationName || lic.organization?.name || '-';
+        const planName = lic.planName || lic.plan?.name || '-';
+
+        let quickActions = '';
+        if (trial) {
+            quickActions = `
+                <div class="trial-actions" style="margin-bottom:16px">
+                    <button class="btn btn-primary btn-sm" onclick="App.extendLicenseDays('${lic.id}', 1)">تمديد 24 ساعة</button>
+                    <button class="btn btn-primary btn-sm" onclick="App.extendLicenseDays('${lic.id}', 7)">تمديد 7 أيام</button>
+                    <button class="btn btn-primary btn-sm" onclick="App.extendLicenseDays('${lic.id}', 30)">تمديد 30 يوماً</button>
+                </div>`;
+        }
+
+        const remainingText = (lic.trialRemainingMs != null)
+            ? this.formatDuration(lic.trialRemainingMs)
+            : '—';
+
+        const history = await this.loadLicenseHistoryFor(lic.organizationId);
+
+        this.showModal(`تفاصيل الترخيص — ${orgName}`, `
+            ${quickActions}
+            <div class="detail-grid" style="display:grid;gap:8px;margin-bottom:16px">
+                <div class="form-group"><label>المعرف</label><div>${lic.id ?? '-'}</div></div>
+                <div class="form-group"><label>رمز الترخيص</label><div style="font-family:monospace" dir="ltr">${lic.licenseCode || lic.key || '-'}</div></div>
+                <div class="form-group"><label>المنظمة</label><div>${orgName}</div></div>
+                <div class="form-group"><label>الخطة</label><div>${planName}</div></div>
+                <div class="form-group"><label>الحالة</label><div>${this.statusBadge(displayStatus)}</div></div>
+                ${trial ? `<div class="form-group"><label>بداية التجربة</label><div>${this.formatDate(lic.trialStartsAt || lic.type === 'trial' ? lic.startedAt : null)}</div></div>
+                    <div class="form-group"><label>نهاية التجربة</label><div>${this.formatDate(lic.trialExpiresAt || lic.expiresAt || lic.trialEndsAt)}</div></div>
+                    <div class="form-group"><label>المتبقي</label><div>${remainingText}</div></div>` : ''}
+                <div class="form-group"><label>تاريخ الانتهاء (الفترة)</label><div>${this.formatDate(lic.expiresAt || lic.currentPeriodEndsAt || lic.expires_at)}</div></div>
+            </div>
+            <div class="form-group">
+                <label>سجل الترخيص</label>
+                <div style="max-height:180px;overflow:auto;border:1px solid var(--border);border-radius:var(--radius);padding:8px">
+                    ${history.length ? history.map(h =>
+                        `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);font-size:13px">
+                            <span>${this.historyLabel(h.action)}</span>
+                            <span style="color:var(--text-muted)">${this.formatDate(h.createdAt || h.created_at)}</span>
+                        </div>`
+                    ).join('') : '<span style="color:var(--text-muted);font-size:13px">لا يوجد سجل</span>'}
+                </div>
+            </div>
+        `, [
+            { text: 'إغلاق', class: 'btn btn-ghost', action: 'App.closeModal()' }
+        ]);
+    },
+
+    historyLabel(action) {
+        const map = {
+            created: 'إنشاء', extended: 'تمديد', suspended: 'تعليق', activated: 'تفعيل',
+            reactivated: 'إعادة تنشيط', revoked: 'إلغاء', plan_changed: 'تغيير الخطة',
+            limits_changed: 'تغيير الحدود'
+        };
+        return map[action] || action;
+    },
+
+    formatDuration(ms) {
+        if (ms == null) return '—';
+        const days = Math.floor(ms / 86400000);
+        const hours = Math.floor((ms % 86400000) / 3600000);
+        if (days > 0) return `${days} يوم ${hours > 0 ? hours + ' ساعة' : ''}`;
+        return `${hours} ساعة`;
+    },
+
+    async loadLicenseHistoryFor(orgId) {
+        try {
+            const res = await this.api('/owner/licenses/history/' + orgId);
+            const data = res || [];
+            return Array.isArray(data) ? data : (data.data || []);
+        } catch {
+            return [];
+        }
+    },
+
+    extendLicenseDays(id, days) {
+        this.executeLicenseAction(id, 'extend', days);
     },
 
     showLicenseModal() {
@@ -695,12 +796,15 @@ const App = {
         }
     },
 
-    async executeLicenseAction(id, action) {
-        const input = document.getElementById('license-action-input').value.trim();
-
-        if (!input) {
-            this.toast('يرجى إدخال القيمة المطلوبة', 'warning');
-            return;
+    async executeLicenseAction(id, action, presetDays, presetPlanId) {
+        if (['extend', 'change-plan'].includes(action) && !presetDays && !presetPlanId) {
+            const input = document.getElementById('license-action-input').value.trim();
+            if (!input) {
+                this.toast('يرجى إدخال القيمة المطلوبة', 'warning');
+                return;
+            }
+            if (action === 'extend') presetDays = parseInt(input);
+            if (action === 'change-plan') presetPlanId = input;
         }
 
         const endpoints = {
@@ -709,8 +813,8 @@ const App = {
         };
 
         const body = action === 'extend'
-            ? { days: parseInt(input) }
-            : { planId: input };
+            ? { days: presetDays }
+            : { planId: presetPlanId };
 
         try {
             await this.api(endpoints[action], {
@@ -789,6 +893,7 @@ const App = {
     statusBadge(status) {
         const map = {
             active: '<span class="badge badge-success">نشط</span>',
+            trialing: '<span class="badge badge-info">تجربة مجانية</span>',
             inactive: '<span class="badge badge-warning">غير نشط</span>',
             suspended: '<span class="badge badge-warning">معلق</span>',
             disabled: '<span class="badge badge-danger">معطل</span>',

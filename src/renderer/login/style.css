@@ -127,4 +127,31 @@ body.setup .hidden-setup { display: block; }
   font-size: var(--font-size-sm);
   justify-content: center;
 }
+
+/* License lock screen */
+#lockScreen .brand { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-lg); justify-content: center; }
+#lockScreen .brand-logo { height: 48px; width: 48px; }
+#lockScreen h1 { text-align: center; font-size: var(--font-size-xl); }
+#lockScreen h1::before { content: '🔒'; display: block; font-size: 40px; margin-bottom: var(--space-sm); }
+.lock-info {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+.lock-info .field { margin-bottom: var(--space-sm); }
+.lock-info .field:last-child { margin-bottom: 0; }
+.lock-info label { font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: .04em; }
+.lock-value {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  color: var(--danger-ink);
+  background: var(--danger-bg);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  min-height: 18px;
+}
+.lock-value.ok { color: var(--success-ink); background: var(--success-bg); }
+#lockErr { margin-top: var(--space-sm); }
 .hidden { display: none !important; }

@@ -137,6 +137,7 @@ async function startTrial(cloudApiBase, organizationId) {
     trialToken: body.trialToken, // HMAC-signed by server
     lastValidatedAt: new Date().toISOString(),
     status: 'active',
+    hardExpired: false,
   };
 
   saveLicense(trialData);
@@ -236,6 +237,10 @@ function getLicenseStatus() {
     if (trial.tampered) {
       return { type: 'trial', status: 'tampered', trial };
     }
+    // Server explicitly rejected the trial (revalidate/periodic) — lock even inside offline grace
+    if (lic.hardExpired) {
+      return { type: 'trial', status: 'expired', trial };
+    }
     if (trial.active) {
       return { type: 'trial', status: 'active', trial };
     }
@@ -281,12 +286,55 @@ async function periodicallyValidate(cloudApiBase, organizationId) {
           licenseCache.trialToken = body.trialToken;
           licenseCache.lastValidatedAt = new Date().toISOString();
           licenseCache.status = body.valid ? 'active' : body.status;
+          licenseCache.hardExpired = !body.valid;
           if (body.expiresAt) licenseCache.expiresAt = body.expiresAt;
           saveLicense(licenseCache);
         }
       }
     } catch { /* offline, grace period handles this */ }
   }, VALIDATION_INTERVAL_MS);
+}
+
+/* ── Re-validate immediately (lock screen "Try again") ────────────── */
+
+async function revalidateNow(cloudApiBase, organizationId) {
+  if (!cloudApiBase) throw new Error('Cloud server not configured');
+
+  const fingerprint = getDeviceFingerprint();
+  const res = await fetch(`${cloudApiBase}/api/v1/owner/trial/validate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ organizationId, deviceFingerprint: fingerprint }),
+  });
+
+  const body = res.ok ? await res.json() : null;
+  const lic = loadLicense();
+  if (lic && body) {
+    const nowIso = new Date().toISOString();
+    if (lic.type === 'trial') {
+      if (body.valid) {
+        lic.trialToken = body.trialToken;
+        lic.status = 'active';
+        lic.hardExpired = false;
+        if (body.expiresAt) lic.expiresAt = body.expiresAt;
+      } else {
+        // Server explicitly rejected — lock now regardless of offline grace
+        lic.status = body.status || 'expired';
+        lic.hardExpired = true;
+        if (body.expiresAt) lic.expiresAt = body.expiresAt;
+      }
+      lic.lastValidatedAt = nowIso;
+    } else if (lic.type === 'activated' && body.valid) {
+      // Owner extended a paid license too — trial/validate returns the new period
+      lic.expiresAt = body.expiresAt || lic.expiresAt;
+      lic.status = body.status || 'active';
+      lic.cloudValidated = true;
+      lic.lastValidatedAt = nowIso;
+    }
+    saveLicense(lic);
+  }
+
+  return getLicenseStatus();
 }
 
 /* ── IPC handlers ──────────────────────────────────────────────── */
@@ -301,6 +349,9 @@ function register(licenseMainWindow) {
   ipcMain.handle('license:start-trial', async (e, { cloudApiBase, organizationId }) => {
     return startTrial(cloudApiBase, organizationId);
   });
+  ipcMain.handle('license:revalidate', async (e, { cloudApiBase, organizationId }) => {
+    return revalidateNow(cloudApiBase, organizationId);
+  });
   ipcMain.handle('license:clear', () => {
     clearLicense();
     return getLicenseStatus();
@@ -310,4 +361,4 @@ function register(licenseMainWindow) {
   });
 }
 
-module.exports = { init, register, getLicenseStatus, getTrialInfo, startTrial, activateLicense, isFeatureAllowed, getDeviceFingerprint, verifyToken };
+module.exports = { init, register, getLicenseStatus, getTrialInfo, startTrial, activateLicense, isFeatureAllowed, getDeviceFingerprint, verifyToken, signToken, revalidateNow, clearLicense };

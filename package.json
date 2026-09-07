@@ -16,13 +16,17 @@
     "inventory-test": "node tests/inventory.test.js",
     "branches-test": "node tests/branches.test.js",
     "transfers-test": "node tests/transfers.test.js",
-    "test": "node tests/smoke.js && node tests/auth.test.js && node tests/suppliers.test.js && node tests/purchases.test.js && node tests/inventory.test.js && node tests/branches.test.js && node tests/transfers.test.js && node tests/sync.test.js"
+    "license-test": "node tests/license.test.js",
+    "currencies-test": "node tests/currencies.test.js",
+    "test": "node tests/smoke.js && node tests/auth.test.js && node tests/suppliers.test.js && node tests/purchases.test.js && node tests/inventory.test.js && node tests/branches.test.js && node tests/transfers.test.js && node tests/sync.test.js && node tests/license.test.js && node tests/currencies.test.js"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "electron": "^43.4.1",
-    "electron-builder": "^26.15.3"
+    "electron-builder": "^26.15.3",
+    "playwright": "^1.63.0"
   },
   "dependencies": {
     "electron-updater": "^6.8.9"

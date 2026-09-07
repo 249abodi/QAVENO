@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { startTestBackend, seedOwner, TestCtx, req, Session, resetDb } from './bootstrap-pg';
 import { AllExceptionsFilter } from '../src/common/all-exceptions.filter';
+import { OrganizationSubscription } from '../src/database/entities';
 
 let ctx: TestCtx;
 let app: INestApplication;
@@ -532,5 +533,108 @@ describe('Phase 35 — Server-Authoritative Trial', () => {
       .send({ token: 'not-a-valid-token!!!' });
     expect(res.status).toBe(200);
     expect(res.body.valid).toBe(false);
+  });
+});
+
+// ── Phase 36: Trial Extension via Owner Portal ───────────────────────
+
+describe('Phase 36 — Owner extends trial (24h / 7d / 30d)', () => {
+  let trialOrg: any;
+
+  beforeAll(async () => {
+    trialOrg = await createOrg('Trial Extend Test Org');
+  });
+
+  it('owner can extend an ACTIVE trial without force (trialing stays trialing)', async () => {
+    const start = await (ctx.api() as any).post('/api/v1/owner/trial/start')
+      .send({ organizationId: trialOrg.id, deviceFingerprint: 'extend-fp-1' });
+    expect(start.status).toBe(200);
+    const subId = start.body.subscription.id;
+    const origEnd = new Date(start.body.expiresAt).getTime();
+
+    // Extend by 7 days (as the owner portal does)
+    const res = await req(ctx, owner, 'post', `/api/v1/owner/licenses/${subId}/extend`)
+      .send({ days: 7 });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('trialing');
+    expect(new Date(res.body.trialEndsAt).getTime()).toBeGreaterThan(origEnd);
+
+    // Server-authoritative validation now reports the extended deadline
+    const val = await (ctx.api() as any).post('/api/v1/owner/trial/validate')
+      .send({ organizationId: trialOrg.id, deviceFingerprint: 'extend-fp-1' });
+    expect(val.status).toBe(200);
+    expect(val.body.valid).toBe(true);
+    expect(val.body.status).toBe('trialing');
+    const gained = new Date(val.body.expiresAt).getTime() - origEnd;
+    expect(gained).toBeGreaterThan(6 * 24 * 3600 * 1000); // ~7 days gained
+  });
+
+  it('owner can extend an EXPIRED trial — returns to trialing with future end', async () => {
+    const org = await createOrg('Trial Expired Extend Org');
+    const start = await (ctx.api() as any).post('/api/v1/owner/trial/start')
+      .send({ organizationId: org.id, deviceFingerprint: 'extend-fp-2' });
+    expect(start.status).toBe(200);
+    const subId = start.body.subscription.id;
+
+    // Simulate the trial having lapsed
+    const past = new Date(Date.now() - 3600_000);
+    await ds.getRepository(OrganizationSubscription).update(subId, {
+      trialStartsAt: new Date(Date.now() - 26 * 3600_000),
+      trialEndsAt: past,
+      currentPeriodStartsAt: new Date(Date.now() - 26 * 3600_000),
+      currentPeriodEndsAt: past,
+    });
+
+    // Trial reports expired server-side before extension
+    const before = await (ctx.api() as any).post('/api/v1/owner/trial/validate')
+      .send({ organizationId: org.id, deviceFingerprint: 'extend-fp-2' });
+    expect(before.body.valid).toBe(false);
+    expect(before.body.status).toBe('expired');
+
+    // Owner extends 24 hours
+    const res = await req(ctx, owner, 'post', `/api/v1/owner/licenses/${subId}/extend`)
+      .send({ days: 1 });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('trialing');
+    expect(new Date(res.body.trialEndsAt).getTime()).toBeGreaterThan(Date.now());
+
+    const after = await (ctx.api() as any).post('/api/v1/owner/trial/validate')
+      .send({ organizationId: org.id, deviceFingerprint: 'extend-fp-2' });
+    expect(after.status).toBe(200);
+    expect(after.body.valid).toBe(true);
+
+    // Extension is audited
+    const hist = await req(ctx, owner, 'get', `/api/v1/owner/licenses/history/${org.id}`);
+    expect(hist.status).toBe(200);
+    expect(hist.body.some(h => h.action === 'extended')).toBe(true);
+  });
+
+  it('GET /owner/licenses enriches rows with org/plan names and trial info', async () => {
+    const res = await req(ctx, owner, 'get', '/api/v1/owner/licenses');
+    expect(res.status).toBe(200);
+    const rows = res.body;
+    expect(Array.isArray(rows)).toBe(true);
+
+    const row = rows.find(r => r.organizationId === trialOrg.id);
+    expect(row).toBeTruthy();
+    expect(row.organizationName).toBe('Trial Extend Test Org');
+    expect(row.planName).toBe('Free Trial');
+    expect(row.trialStatus).toBe('trialing');
+    expect(row.trialExpiresAt).toBeTruthy();
+    expect(typeof row.trialRemainingMs).toBe('number');
+  });
+
+  it('cannot extend a revoked license (even via owner)', async () => {
+    const org = await createOrg('Revoked Extend Org');
+    const plan = await createPlan('rev-extend-plan', { slug: 'rev-extend-plan' });
+    const lic = await req(ctx, owner, 'post', '/api/v1/owner/licenses/create')
+      .send({ organizationId: org.id, planId: plan.id, durationDays: 30 });
+    await req(ctx, owner, 'post', `/api/v1/owner/licenses/${lic.body.id}/revoke`)
+      .send({ reason: 'test' });
+
+    const res = await req(ctx, owner, 'post', `/api/v1/owner/licenses/${lic.body.id}/extend`)
+      .send({ days: 7 });
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('LICENSE_REVOKED');
   });
 });

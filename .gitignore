@@ -11,3 +11,9 @@ dist/
 *.db-wal
 
 da-mcp.exe
+.vercel
+.env*
+
+.agents/
+.claude/
+.opencode/tmp/

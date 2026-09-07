@@ -46,6 +46,44 @@ function hideLicenseScreen() {
   $('#licenseScreen').classList.add('hidden');
 }
 
+/* ── Lock screen (expired / suspended / revoked / tampered) ───────── */
+
+function showLockScreen(st) {
+  $('#licenseScreen').classList.add('hidden');
+  $('#lockScreen').classList.remove('hidden');
+
+  const trial = st.trial || {};
+  const lic = st.license || {};
+  $('#lockOrgId').textContent = trial.organizationId || lic.organizationId || 1;
+
+  const statusKey = {
+    expired: 'login.lock.stExpired',
+    suspended: 'login.lock.stSuspended',
+    revoked: 'login.lock.stRevoked',
+    tampered: 'login.lock.stTampered'
+  }[st.status] || 'login.lock.stExpired';
+  $('#lockStatus').textContent = t(statusKey);
+
+  const expiresAt = trial.endsAt || trial.expiresAt || lic.expiresAt || null;
+  $('#lockExpires').textContent = expiresAt
+    ? new Date(expiresAt).toLocaleString(window.i18n.locale())
+    : '—';
+  $('#lockErr').hidden = true;
+}
+
+function hideLockScreen() {
+  $('#lockScreen').classList.add('hidden');
+}
+
+function restoreLogin() {
+  hideLockScreen();
+  $('#licenseScreen').classList.add('hidden');
+  $('loginForm').closest('section').querySelector('.brand').style.display = '';
+  $('#formTitle').style.display = '';
+  $('#formSub').style.display = '';
+  $('loginForm').style.display = '';
+}
+
 async function checkLicenseStatus() {
   try {
     const st = await window.pos.license.status();
@@ -54,9 +92,11 @@ async function checkLicenseStatus() {
     } else if (st.type === 'trial' && st.status === 'active') {
       showTrialBanner(st.trial);
     } else if (st.type === 'trial' && st.status === 'expired') {
-      showLicErr('انتهت التجربة المجانية (24 ساعة). أدخل كود الترخيص للمتابعة.');
+      showLockScreen(st);
     } else if (st.type === 'trial' && st.status === 'tampered') {
-      showLicErr('تم اكتشاف تلاعب ببيانات التجربة. أدخل كود الترخيص.');
+      showLockScreen(st);
+    } else if (st.status === 'suspended' || st.status === 'revoked') {
+      showLockScreen(st);
     } else {
       // No license, no trial — show trial button
       $('#trialBtn').classList.remove('hidden');
@@ -169,6 +209,61 @@ $('#goAppBtn').addEventListener('click', async () => {
   try { await window.pos.auth.login('owner', ''); } catch { /* ok */ }
 });
 
+/* ── Lock screen actions ────────────────────────────────────────── */
+
+$('#lockRetryBtn').addEventListener('click', async () => {
+  const el = $('#lockRetryBtn');
+  const label = el.querySelector('span');
+  const cloudUrl = $('#cloudUrl').value.trim().replace(/\/+$/, '');
+  const st = await window.pos.license.status();
+  const organizationId = (st.trial || st.license || {}).organizationId || 1;
+
+  const base = cloudUrl || 'https://qaveno-production.up.railway.app';
+
+  el.disabled = true;
+  label.textContent = t('login.lock.retrying');
+  $('#lockErr').hidden = true;
+  try {
+    const res = await window.pos.license.revalidate(base, organizationId);
+    if (res.type === 'trial' && res.status === 'active') {
+      restoreLogin();
+      showTrialBanner(res.trial);
+      window.pos.license.startPeriodicValidation(base, organizationId);
+    } else if (res.type === 'license' && res.status === 'active') {
+      restoreLogin();
+      showLicActive(res.license);
+    } else {
+      showLockScreen(res);
+      $('#lockErr').textContent = t('login.lock.retryFailed');
+      $('#lockErr').hidden = false;
+    }
+  } catch (err) {
+    $('#lockErr').textContent = t('login.lock.retryOffline');
+    $('#lockErr').hidden = false;
+  } finally {
+    el.disabled = false;
+    label.textContent = t('login.lock.retry');
+    // Re-apply i18n after restoring (button text was replaced)
+    window.i18n.apply();
+  }
+});
+
+$('#lockContactBtn').addEventListener('click', async () => {
+  const st = await window.pos.license.status();
+  const trial = st.trial || {};
+  const lic = st.license || {};
+  const info = {
+    organizationId: trial.organizationId || lic.organizationId || 1,
+    status: st.status,
+    expiresAt: trial.endsAt || trial.expiresAt || lic.expiresAt || null
+  };
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(info));
+  } catch { /* clipboard may be blocked; text is shown below */ }
+  $('#lockErr').textContent = t('login.lock.copied');
+  $('#lockErr').hidden = false;
+});
+
 /* ── Pre-auth prefs ─────────────────────────────────────────────── */
 
 function applyPrefs() {
@@ -237,12 +332,12 @@ $('#loginForm').addEventListener('submit', async (e) => {
         return;
       }
       if ((st.type === 'trial' && st.status === 'expired') || (st.type === 'license' && st.status === 'expired')) {
-        showLicenseScreen();
+        showLockScreen(st);
         setBusy(false, t('login.submit'));
         return;
       }
       if (st.status === 'tampered' || st.status === 'suspended' || st.status === 'revoked') {
-        showLicenseScreen();
+        showLockScreen(st);
         setBusy(false, t('login.submit'));
         return;
       }
