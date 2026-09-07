@@ -1,6 +1,6 @@
 {
   "name": "qaveno",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "QAVENO — Premium POS & Inventory Management System",
   "main": "src/main/main.js",
   "type": "commonjs",
