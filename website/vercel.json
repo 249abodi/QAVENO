@@ -1,19 +1,6 @@
 {
   "version": 2,
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "name": "qaveno-website",
-  "builds": [
-    {
-      "src": "website/index.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "redirects": [
-    { "source": "/owner/(.*)", "destination": "https://owner.qaveno.com/$1", "permanent": true }
-  ],
-  "routes": [
-    { "src": "/(.*)", "dest": "/website/index.html" }
-  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -25,5 +12,8 @@
         { "key": "X-XSS-Protection", "value": "1; mode=block" }
       ]
     }
+  ],
+  "redirects": [
+    { "source": "/owner/(.*)", "destination": "https://owner.qaveno.com/$1", "permanent": true }
   ]
 }

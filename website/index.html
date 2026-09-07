@@ -2,295 +2,918 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>QAVENO — Premium POS & Inventory Management</title>
-  <meta name="description" content="QAVENO is a premium POS, inventory, and business management system for modern retail. Offline-first, multi-branch, AI-powered."/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>QAVENO — Premium POS &amp; Inventory Management</title>
+  <meta name="description" content="QAVENO is a professional POS, inventory, and business management platform for modern retail — offline-first, multi-branch, AI-powered."/>
+  <meta name="theme-color" content="#0f172a"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="QAVENO — Premium POS &amp; Inventory Management"/>
+  <meta property="og:description" content="POS, inventory, multi-branch, analytics and AI insights in one offline-first platform. Free for your first 24 hours."/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --primary-soft: #eef2ff;
-      --success: #16a34a;
-      --success-bg: #dcfce7;
-      --text: #0f172a;
-      --text-secondary: #475569;
-      --text-muted: #94a3b8;
-      --bg: #f8fafc;
+      --indigo-500: #6366f1;
+      --indigo-600: #4f46e5;
+      --indigo-700: #4338ca;
+      --indigo-50: #eef2ff;
+      --violet-500: #8b5cf6;
+      --ink: #0f172a;
+      --ink-2: #334155;
+      --ink-3: #64748b;
+      --ink-4: #94a3b8;
       --surface: #ffffff;
-      --border: #e2e8f0;
-      --radius: 12px;
-      --shadow: 0 4px 24px rgba(15,23,42,.08);
-      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --bg: #f8fafc;
+      --line: #e2e8f0;
+      --green-600: #16a34a;
+      --green-700: #15803d;
+      --green-50: #f0fdf4;
+      --wa: #25d366;
+      --wa-dark: #1da851;
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-sm: 0 1px 2px rgba(15,23,42,.05), 0 2px 8px rgba(15,23,42,.05);
+      --shadow-md: 0 4px 16px rgba(15,23,42,.08), 0 8px 32px rgba(15,23,42,.06);
+      --shadow-lg: 0 16px 48px rgba(15,23,42,.12);
+      --container: 1180px;
+      --font: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      --ease: cubic-bezier(.22,.61,.36,1);
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--font); color: var(--text); background: var(--bg); line-height: 1.6; }
-    img { max-width: 100%; }
-    a { color: var(--primary); text-decoration: none; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: var(--font);
+      color: var(--ink);
+      background: var(--surface);
+      line-height: 1.6;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    img, svg { display: block; max-width: 100%; }
+    a { color: var(--indigo-600); text-decoration: none; }
+    ul { list-style: none; }
+    button { font: inherit; cursor: pointer; }
 
-    /* Nav */
-    .nav { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 24px; }
-    .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
-    .nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 22px; color: var(--text); }
-    .nav-brand img { height: 36px; width: 36px; border-radius: 8px; }
-    .nav-links { display: flex; gap: 32px; align-items: center; }
-    .nav-links a { color: var(--text-secondary); font-size: 15px; font-weight: 500; transition: color .15s; }
-    .nav-links a:hover { color: var(--primary); }
-    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 15px; border: none; cursor: pointer; transition: all .15s; }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(99,102,241,.3); }
-    .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
-    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
-    .btn-whatsapp { background: #25d366; color: #fff; }
-    .btn-whatsapp:hover { background: #1da851; }
-    .btn-sm { padding: 8px 16px; font-size: 14px; }
-    .btn-download { background: var(--success); color: #fff; padding: 16px 40px; font-size: 18px; }
-    .btn-download:hover { background: #15803d; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(22,163,74,.3); }
+    ::selection { background: var(--indigo-50); color: var(--indigo-700); }
 
-    /* Hero */
-    .hero { padding: 80px 24px 60px; text-align: center; background: linear-gradient(135deg, #eef2ff 0%, #faf5ff 50%, #f0fdf4 100%); }
-    .hero h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 800; line-height: 1.15; margin-bottom: 16px; }
-    .hero h1 span { background: linear-gradient(135deg, var(--primary), #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .hero p { font-size: 18px; color: var(--text-secondary); max-width: 600px; margin: 0 auto 32px; }
-    .hero-ctas { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-    .hero-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; background: var(--success-bg); color: var(--success); border-radius: 999px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
+    :focus-visible {
+      outline: 3px solid var(--indigo-500);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
 
-    /* Sections */
-    section { padding: 80px 24px; }
-    .download { background: var(--surface); text-align: center; }
-    .download-card { max-width: 640px; margin: 0 auto; padding: 48px 32px; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
-    .download-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; background: var(--success-bg); color: var(--success); border-radius: 999px; font-size: 13px; font-weight: 600; margin-bottom: 16px; }
-    .download-card h2 { font-size: 30px; font-weight: 800; margin-bottom: 12px; }
-    .download-card p { color: var(--text-secondary); font-size: 16px; margin-bottom: 28px; max-width: 460px; margin-left: auto; margin-right: auto; }
-    .download-meta { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-top: 24px; color: var(--text-muted); font-size: 14px; }
-    .download-ar { display: block; margin-top: 12px; font-size: 14px; color: var(--text-muted); }
-    .section-title { text-align: center; font-size: 36px; font-weight: 800; margin-bottom: 12px; }
-    .section-sub { text-align: center; color: var(--text-secondary); font-size: 17px; max-width: 600px; margin: 0 auto 48px; }
-    .container { max-width: 1200px; margin: 0 auto; }
+    .skip-link {
+      position: absolute;
+      left: 16px; top: -60px;
+      background: var(--ink);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      z-index: 200;
+      transition: top .2s var(--ease);
+    }
+    .skip-link:focus { top: 16px; }
 
-    /* Features grid */
-    .features { background: var(--surface); }
-    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
-    .feature-card { padding: 32px; border: 1px solid var(--border); border-radius: var(--radius); transition: all .2s; }
-    .feature-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); border-color: var(--primary); }
-    .feature-icon { font-size: 40px; margin-bottom: 16px; }
-    .feature-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-    .feature-card p { color: var(--text-secondary); font-size: 15px; }
+    .container { max-width: var(--container); margin: 0 auto; padding: 0 24px; }
 
-    /* Pricing */
-    .pricing { background: var(--bg); }
-    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-    .price-card { background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); padding: 36px 28px; text-align: center; transition: all .2s; position: relative; }
-    .price-card.featured { border-color: var(--primary); box-shadow: 0 8px 32px rgba(99,102,241,.15); }
-    .price-card.featured::before { content: 'MOST POPULAR'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--primary); color: #fff; padding: 4px 16px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; }
-    .price-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-    .price-card .price { font-size: 42px; font-weight: 800; color: var(--primary); margin: 16px 0; }
-    .price-card .price small { font-size: 16px; color: var(--text-muted); font-weight: 500; }
-    .price-card ul { list-style: none; text-align: left; margin: 24px 0; }
-    .price-card li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-secondary); }
-    .price-card li::before { content: '✓ '; color: var(--success); font-weight: 700; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 13px 24px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      font-weight: 600;
+      font-size: 15px;
+      line-height: 1.2;
+      min-height: 48px;
+      transition: transform .18s var(--ease), box-shadow .18s var(--ease), background-color .18s, border-color .18s, color .18s;
+      white-space: nowrap;
+    }
+    .btn svg { flex: none; }
+    .btn:active { transform: translateY(0) scale(.99); }
+    .btn-lg { padding: 16px 30px; font-size: 16px; min-height: 54px; }
+    .btn-primary { background: var(--indigo-600); color: #fff; box-shadow: 0 6px 20px rgba(79,70,229,.28); }
+    .btn-primary:hover { background: var(--indigo-700); transform: translateY(-1px); box-shadow: 0 10px 28px rgba(79,70,229,.34); }
+    .btn-success { background: var(--green-600); color: #fff; box-shadow: 0 6px 20px rgba(22,163,74,.28); }
+    .btn-success:hover { background: var(--green-700); transform: translateY(-1px); box-shadow: 0 10px 28px rgba(22,163,74,.34); }
+    .btn-outline { background: transparent; border-color: var(--line); color: var(--ink); }
+    .btn-outline:hover { border-color: var(--indigo-500); color: var(--indigo-700); }
+    .btn-wa { background: var(--wa); color: #fff; }
+    .btn-wa:hover { background: var(--wa-dark); transform: translateY(-1px); box-shadow: 0 10px 28px rgba(37,211,102,.28); }
+    .btn-light { background: #fff; color: var(--indigo-700); }
+    .btn-light:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(0,0,0,.16); }
 
-    /* CTA */
-    .cta { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; text-align: center; }
-    .cta h2 { font-size: 36px; font-weight: 800; margin-bottom: 12px; }
-    .cta p { font-size: 18px; opacity: .9; margin-bottom: 32px; max-width: 500px; margin-left: auto; margin-right: auto; }
-    .cta .btn { background: #fff; color: var(--primary); }
-    .cta .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--indigo-600);
+      background: var(--indigo-50);
+      padding: 7px 14px;
+      border-radius: 999px;
+    }
+    .section { padding: 96px 0; }
+    .section-head { max-width: 680px; margin: 0 auto 56px; text-align: center; }
+    .section-head h2 { font-size: clamp(30px, 4vw, 42px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.12; margin: 18px 0 14px; }
+    .section-head p { font-size: 17px; color: var(--ink-3); }
+    .section-head .eyebrow { margin: 0 auto; }
 
-    /* Footer */
-    .footer { padding: 40px 24px; text-align: center; color: var(--text-muted); font-size: 14px; border-top: 1px solid var(--border); }
-    .footer a { color: var(--text-secondary); }
+    /* ───────────── Header / Nav ───────────── */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,.86);
+      backdrop-filter: saturate(180%) blur(14px);
+      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; font-weight: 800; font-size: 21px; letter-spacing: -.01em; color: var(--ink); }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 10px; flex: none;
+      background: linear-gradient(135deg, var(--indigo-600), var(--violet-500));
+      display: inline-flex; align-items: center; justify-content: center;
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(79,70,229,.35);
+    }
+    .nav-links { display: flex; align-items: center; gap: 6px; }
+    .nav-links a.link { color: var(--ink-2); font-weight: 500; font-size: 15px; padding: 9px 14px; border-radius: 8px; transition: color .15s, background-color .15s; }
+    .nav-links a.link:hover { color: var(--indigo-700); background: var(--indigo-50); }
+    .nav-ctas { display: flex; align-items: center; gap: 12px; }
+    .nav-ctas .btn { min-height: 42px; padding: 10px 18px; font-size: 14px; }
 
-    @media (max-width: 768px) {
-      .nav-links { gap: 16px; }
-      .nav-links a { display: none; }
-      section { padding: 48px 16px; }
+    .nav-toggle {
+      display: none;
+      width: 44px; height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--ink);
+      align-items: center; justify-content: center;
+    }
+    .nav-toggle svg { width: 22px; height: 22px; }
+
+    @media (max-width: 920px) {
+      .nav-toggle { display: inline-flex; }
+      .nav-links {
+        position: absolute;
+        top: 72px; left: 0; right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--line);
+        padding: 14px 20px 20px;
+        box-shadow: var(--shadow-md);
+        display: none;
+      }
+      body.nav-open .nav-links { display: flex; }
+      .nav-links a.link { padding: 12px 14px; font-size: 16px; }
+      .nav-ctas { flex-direction: column; align-items: stretch; gap: 8px; margin-top: 10px; }
+      .nav-ctas .btn { width: 100%; }
+    }
+
+    /* ───────────── Hero ───────────── */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 84px 0 96px;
+      background:
+        radial-gradient(52% 62% at 82% 8%, rgba(139,92,246,.10), transparent 62%),
+        radial-gradient(44% 58% at 12% 18%, rgba(79,70,229,.10), transparent 60%),
+        linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+    }
+    .hero-grid { display: grid; grid-template-columns: 1.02fr 1fr; gap: 56px; align-items: center; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 9px;
+      font-size: 13.5px; font-weight: 600; color: var(--green-700);
+      background: var(--green-50);
+      border: 1px solid #bbf7d0;
+      padding: 8px 16px; border-radius: 999px;
+    }
+    .hero-badge .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--green-600); }
+    .hero h1 {
+      font-size: clamp(38px, 5.2vw, 60px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.06;
+      margin: 22px 0 20px;
+    }
+    .hero h1 .grad {
+      background: linear-gradient(120deg, var(--indigo-600), var(--violet-500));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .hero p.lead { font-size: 19px; color: var(--ink-3); max-width: 540px; margin-bottom: 34px; }
+    .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-note { display: flex; align-items: center; gap: 8px; margin-top: 18px; font-size: 14px; color: var(--ink-4); }
+    .hero-note svg { width: 17px; height: 17px; color: var(--green-600); }
+
+    /* App mockup */
+    .hero-visual { position: relative; }
+    .window {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    .window-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--line);
+    }
+    .traffic { width: 11px; height: 11px; border-radius: 50%; }
+    .traffic.r { background: #f87171; } .traffic.y { background: #fbbf24; } .traffic.g { background: #34d399; }
+    .window-addr {
+      margin-inline-start: 12px;
+      font-size: 12px; color: var(--ink-4);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 4px 16px; border-radius: 999px;
+    }
+    .app { display: flex; min-height: 400px; }
+    .app-sidebar { width: 58px; background: #f1f5f9; border-inline-end: 1px solid var(--line); padding: 16px 0; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .s-app {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--surface); border: 1px solid var(--line);
+      display: inline-flex; align-items: center; justify-content: center; color: var(--ink-4);
+    }
+    .s-app.on { background: var(--indigo-600); border-color: var(--indigo-600); color: #fff; box-shadow: 0 6px 14px rgba(79,70,229,.3); }
+    .app-main { flex: 1; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .kpi {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .kpi .k-label { font-size: 11px; color: var(--ink-4); font-weight: 600; letter-spacing: .03em; }
+    .kpi .k-bar { height: 8px; border-radius: 6px; background: var(--indigo-50); margin-top: 8px; overflow: hidden; }
+    .kpi .k-bar > span { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--indigo-500), var(--violet-500)); }
+    .kpi.green .k-bar > span { background: linear-gradient(90deg, #34d399, #16a34a); }
+    .kpi.amber .k-bar > span { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+    .app-split { display: grid; grid-template-columns: 1.15fr .85fr; gap: 12px; flex: 1; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+    .panel-title { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 700; color: var(--ink-2); margin-bottom: 12px; }
+    .chip { font-size: 10.5px; color: var(--indigo-600); background: var(--indigo-50); padding: 3px 8px; border-radius: 999px; font-weight: 600; }
+    .row-bars { display: flex; flex-direction: column; gap: 10px; }
+    .rbar { display: flex; align-items: center; gap: 10px; }
+    .rbar .dot { width: 22px; height: 22px; border-radius: 7px; flex: none; background: var(--indigo-100); }
+    .rbar .line { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .rbar .line > span { height: 6px; border-radius: 5px; background: #eef2f7; }
+    .rbar .line > span.w60 { width: 60%; } .rbar .line span.w40 { width: 40%; }
+    .cart-item { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px dashed var(--line); font-size: 12px; color: var(--ink-2); }
+    .cart-item:last-child { border-bottom: 0; }
+    .cart-total { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-weight: 700; font-size: 13px; }
+    .cart-total b { color: var(--indigo-600); }
+    .cart-btn { margin-top: 10px; background: var(--indigo-600); color: #fff; border: 0; border-radius: 9px; padding: 9px; font-size: 12.5px; font-weight: 600; }
+
+    .float-chip {
+      position: absolute;
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13px; font-weight: 600; color: var(--ink-2);
+      box-shadow: var(--shadow-md);
+    }
+    .float-chip svg { width: 17px; height: 17px; color: var(--indigo-600); }
+    .float-chip.green svg { color: var(--green-600); }
+    .f-offline { top: -22px; left: -22px; }
+    .f-trial { bottom: -22px; right: -14px; }
+
+    @media (max-width: 960px) {
+      .hero { padding: 56px 0 72px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+      .hero p.lead { max-width: 640px; }
+    }
+
+    /* ───────────── Value strip ───────────── */
+    .value-strip { border-block: 1px solid var(--line); background: var(--surface); padding: 26px 0; }
+    .value-list { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px 40px; }
+    .value-item { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--ink-2); }
+    .value-item svg { width: 20px; height: 20px; color: var(--green-600); flex: none; }
+
+    /* ───────────── Features ───────────── */
+    .features { background: var(--bg); }
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 30px 26px;
+      transition: transform .22s var(--ease), box-shadow .22s var(--ease), border-color .22s;
+    }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: #c7d2fe; }
+    .feature-icon {
+      width: 50px; height: 50px; border-radius: 13px;
+      background: var(--indigo-50); color: var(--indigo-600);
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .feature-icon svg { width: 26px; height: 26px; }
+    .feature-card h3 { font-size: 18px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+    .feature-card p { font-size: 15px; color: var(--ink-3); }
+
+    @media (max-width: 960px) { .feature-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { .feature-grid { grid-template-columns: 1fr; } }
+
+    /* ───────────── Showcase ───────────── */
+    .showcase { background: var(--surface); }
+    .showcase-visual { max-width: 900px; margin: 0 auto; }
+    .showcase .window { min-height: 380px; }
+    .showcase .app-split { grid-template-columns: 1fr 1fr; }
+    .bar-chart { display: flex; align-items: flex-end; gap: 14px; height: 132px; padding-top: 8px; }
+    .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .bar-fill { width: 100%; border-radius: 8px 8px 4px 4px; background: linear-gradient(180deg, var(--indigo-500), var(--indigo-700)); }
+    .bar-fill.a { height: 46%; } .bar-fill.b { height: 68%; } .bar-fill.c { height: 38%; }
+    .bar-fill.d { height: 82%; } .bar-fill.e { height: 58%; } .bar-fill.f { height: 72%; }
+    .bar-col span { font-size: 10.5px; color: var(--ink-4); font-weight: 600; }
+    .donut { position: relative; width: 108px; height: 108px; border-radius: 50%; background: conic-gradient(var(--indigo-600) 0 62%, var(--violet-500) 62% 84%, #e2e8f0 84% 100%); margin: 0 auto; }
+    .donut::after { content: ""; position: absolute; inset: 22px; background: var(--surface); border-radius: 50%; }
+    .donut-wrap { display: flex; align-items: center; gap: 22px; padding-top: 6px; }
+    .legend { display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: var(--ink-2); }
+    .legend li { display: flex; align-items: center; gap: 8px; }
+    .legend .sw { width: 10px; height: 10px; border-radius: 3px; }
+
+    /* ───────────── How it works ───────────── */
+    .how { background: var(--bg); }
+    .step-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; counter-reset: step; }
+    .step { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 30px 26px; position: relative; }
+    .step-num {
+      width: 40px; height: 40px; border-radius: 11px;
+      background: var(--ink); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 16px;
+      margin-bottom: 18px;
+    }
+    .step h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: 15px; color: var(--ink-3); }
+    @media (max-width: 960px) { .step-grid { grid-template-columns: 1fr; } }
+
+    /* ───────────── Pricing ───────────── */
+    .pricing { background: var(--surface); }
+    .price-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; align-items: stretch; }
+    .price-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 30px 26px;
+      display: flex; flex-direction: column;
+      transition: transform .22s var(--ease), box-shadow .22s var(--ease), border-color .22s;
+    }
+    .price-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .price-card.featured { border-color: var(--indigo-500); box-shadow: 0 0 0 1px var(--indigo-500), var(--shadow-md); position: relative; }
+    .price-card.featured .p-badge {
+      position: absolute; top: -13px; inset-inline: 0; margin-inline: auto; width: fit-content;
+      background: var(--indigo-600); color: #fff;
+      font-size: 12px; font-weight: 700; letter-spacing: .05em;
+      padding: 5px 14px; border-radius: 999px;
+      box-shadow: 0 6px 16px rgba(79,70,229,.3);
+    }
+    .p-name { font-size: 15px; font-weight: 700; color: var(--ink-2); margin-bottom: 6px; }
+    .p-price { font-size: 40px; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: baseline; gap: 6px; margin: 8px 0 4px; }
+    .p-price small { font-size: 15px; font-weight: 500; color: var(--ink-4); }
+    .p-desc { font-size: 13.5px; color: var(--ink-4); margin-bottom: 20px; }
+    .p-feats { flex: 1; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+    .p-feats li { display: flex; gap: 10px; font-size: 14px; color: var(--ink-2); }
+    .p-feats svg { width: 18px; height: 18px; color: var(--green-600); flex: none; margin-top: 2px; }
+    .price-card .btn { width: 100%; }
+    @media (max-width: 1024px) { .price-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .price-grid { grid-template-columns: 1fr; } }
+
+    /* ───────────── Demo / Download CTA ───────────── */
+    .demo { background:
+        radial-gradient(60% 90% at 80% 10%, rgba(139,92,246,.14), transparent 60%),
+        radial-gradient(50% 80% at 12% 20%, rgba(79,70,229,.14), transparent 56%),
+        linear-gradient(180deg, #ffffff, #eef2ff);
+      padding: 100px 0; }
+    .demo-card {
+      max-width: 760px; margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      padding: 48px 40px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    .demo-card::before {
+      content: "";
+      position: absolute; inset: 0 0 auto 0; height: 5px;
+      background: linear-gradient(90deg, var(--indigo-600), var(--violet-500), var(--green-600));
+    }
+    .demo-card h2 { font-size: clamp(26px, 3.4vw, 36px); font-weight: 800; letter-spacing: -0.02em; margin: 8px 0 12px; }
+    .demo-card > p { font-size: 16.5px; color: var(--ink-3); max-width: 520px; margin: 0 auto 26px; }
+    .demo-ar { display: block; font-size: 14px; color: var(--ink-4); margin-top: 16px; }
+    .demo-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px; margin-top: 24px; }
+    .demo-meta span { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
+    .demo-meta svg { width: 16px; height: 16px; color: var(--indigo-600); }
+
+    /* ───────────── Final CTA ───────────── */
+    .final-cta {
+      background: linear-gradient(120deg, #1e1b4b 0%, #312e81 55%, #4c1d95 100%);
+      color: #fff;
+      text-align: center;
+      padding: 100px 0;
+    }
+    .final-cta h2 { font-size: clamp(30px, 4vw, 44px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 16px; }
+    .final-cta p { font-size: 18px; color: rgba(255,255,255,.72); max-width: 520px; margin: 0 auto 32px; }
+    .final-cta .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .final-cta .fine { margin-top: 18px; font-size: 13.5px; color: rgba(255,255,255,.55); }
+
+    /* ───────────── Footer ───────────── */
+    .footer { background: var(--ink); color: var(--ink-4); padding: 56px 0 32px; }
+    .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 40px; padding-bottom: 36px; border-bottom: 1px solid rgba(148,163,184,.16); }
+    .footer-brand p { margin-top: 14px; font-size: 14.5px; max-width: 300px; }
+    .footer h4 { color: #fff; font-size: 14px; font-weight: 700; margin-bottom: 16px; letter-spacing: .02em; }
+    .footer ul { display: flex; flex-direction: column; gap: 10px; }
+    .footer a { color: var(--ink-4); font-size: 14.5px; transition: color .15s; }
+    .footer a:hover { color: #fff; }
+    .footer-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 24px; flex-wrap: wrap; }
+    .footer-bottom small { font-size: 13.5px; }
+    .footer .mini-mark { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: #fff; font-size: 16px; }
+    @media (max-width: 640px) { .footer-grid { grid-template-columns: 1fr; gap: 28px; } }
+
+    /* ───────────── Motion ───────────── */
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
+    .reveal.in { opacity: 1; transform: none; }
+    .stagger-2 { transition-delay: .08s; }
+    .stagger-3 { transition-delay: .16s; }
+    .stagger-4 { transition-delay: .24s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+
+    @media (max-width: 520px) {
+      .section { padding: 72px 0; }
+      .hero h1 { font-size: 36px; }
+      .float-chip { display: none; }
+      .btn-lg { width: 100%; }
+      .hero-ctas, .cta-row { flex-direction: column; align-items: stretch; }
+      .cta-row .btn { width: 100%; }
+      .demo-card { padding: 36px 22px; }
+      .nav { height: 66px; }
+      .nav-links { top: 66px; }
     }
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-<!-- Navigation -->
-<nav class="nav">
-  <div class="nav-inner">
-    <div class="nav-brand">
-      <img src="assets/logo.png" alt="QAVENO" onerror="this.style.display='none'"/>
-      QAVENO
+  <!-- Navigation -->
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="#" aria-label="QAVENO home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 3 4 3-7"/></svg>
+        </span>
+        QAVENO
+      </a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Toggle navigation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+
+      <nav id="primary-nav" class="nav-links" aria-label="Primary">
+        <a class="link" href="#features">Features</a>
+        <a class="link" href="#how-it-works">How It Works</a>
+        <a class="link" href="#pricing">Pricing</a>
+        <a class="link" href="#download">Download</a>
+        <div class="nav-ctas">
+          <a class="btn btn-outline" href="https://wa.me/60175816193?text=Hi%20QAVENO%2C%20I%20want%20to%20learn%20more" target="_blank" rel="noopener">Contact Sales</a>
+          <a class="btn btn-primary" href="#download">Download Free Demo</a>
+        </div>
+      </nav>
     </div>
-    <div class="nav-links">
-      <a href="#features">Features</a>
-      <a href="#pricing">Pricing</a>
-      <a href="#download">Download</a>
-      <a href="https://wa.me/60175816193" target="_blank" class="btn btn-whatsapp btn-sm">WhatsApp</a>
-      <a href="#download" class="btn btn-primary btn-sm">Download Free</a>
-    </div>
-  </div>
-</nav>
+  </header>
 
-<!-- Hero -->
-<section class="hero">
-  <div class="hero-badge">🚀 Now available for Windows</div>
-  <h1>Run Your Business<br/>with <span>QAVENO</span></h1>
-  <p>Premium point-of-sale, inventory management, and business analytics — all in one powerful offline-first desktop application.</p>
-  <div class="hero-ctas">
-    <a href="#download" class="btn btn-primary" style="padding:14px 32px;font-size:17px">Download Free for 24 Hours</a>
-    <a href="https://wa.me/60175816193?text=Hi%20QAVENO%2C%20I%20want%20to%20learn%20more" target="_blank" class="btn btn-whatsapp" style="padding:14px 32px;font-size:17px">💬 Contact Sales</a>
-  </div>
-</section>
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="hero-badge"><span class="pulse" aria-hidden="true"></span> Available now for Windows</span>
+          <h1>Run your business smarter with <span class="grad">QAVENO</span></h1>
+          <p class="lead">QAVENO brings point of sale, inventory, multi-branch management, analytics and AI insights together in one offline-first desktop platform — built for modern retail.</p>
+          <div class="hero-ctas">
+            <a class="btn btn-success btn-lg" href="#download">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+              Download Free for 24 Hours
+            </a>
+            <a class="btn btn-outline btn-lg" href="https://wa.me/60175816193?text=Hi%20QAVENO%2C%20I%20want%20to%20learn%20more" target="_blank" rel="noopener">Contact Sales</a>
+          </div>
+          <p class="hero-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            Full access for your first 24 hours. No credit card required.
+          </p>
+        </div>
 
-<!-- Download -->
-<section id="download" class="download">
-  <div class="container">
-    <div class="download-card">
-      <div class="download-badge">🖥️ Windows 10/11</div>
-      <h2>Download QAVENO for Windows</h2>
-      <p>Get the full desktop application — free for your first 24 hours. No credit card required.</p>
-      <a href="https://github.com/249abodi/QAVENO/releases/download/v1.1.0/QAVENO-Setup-1.1.0.exe" class="btn btn-download">⬇ Download Installer (.exe)</a>
-      <span class="download-ar" dir="rtl">تحميل QAVENO لنظام Windows مجانًا لمدة 24 ساعة</span>
-      <div class="download-meta">
-        <span>💻 Offline-first</span>
-        <span>⏱️ Trial valid for 24 hours</span>
-        <span>🖥️ Windows 10/11</span>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="window">
+            <div class="window-bar">
+              <span class="traffic r"></span><span class="traffic y"></span><span class="traffic g"></span>
+              <span class="window-addr">app.qaveno.com — POS</span>
+            </div>
+            <div class="app">
+              <div class="app-sidebar">
+                <span class="s-app on"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5"/></svg></span>
+                <span class="s-app"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/></svg></span>
+                <span class="s-app"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></span>
+              </div>
+              <div class="app-main">
+                <div class="kpi-row">
+                  <div class="kpi"><div class="k-label">Today</div><div class="k-bar"><span style="width:70%"></span></div></div>
+                  <div class="kpi green"><div class="k-label">Stock</div><div class="k-bar"><span style="width:82%"></span></div></div>
+                  <div class="kpi amber"><div class="k-label">Margin</div><div class="k-bar"><span style="width:54%"></span></div></div>
+                </div>
+                <div class="app-split">
+                  <div class="panel">
+                    <div class="panel-title">Sales <span class="chip">Live</span></div>
+                    <div class="row-bars">
+                      <div class="rbar"><span class="dot"></span><span class="line"><span class="w60"></span><span class="w40"></span></span></div>
+                      <div class="rbar"><span class="dot"></span><span class="line"><span class="w60"></span><span class="w40"></span></span></div>
+                      <div class="rbar"><span class="dot"></span><span class="line"><span class="w60"></span><span class="w40"></span></span></div>
+                    </div>
+                  </div>
+                  <div class="panel">
+                    <div class="panel-title">Current order</div>
+                    <div class="cart-item"><span>Item 01</span></div>
+                    <div class="cart-item"><span>Item 02</span></div>
+                    <div class="cart-item"><span>Item 03</span></div>
+                    <div class="cart-total"><span>Total</span><b>SAR 0.00</b></div>
+                    <div class="cart-btn">Checkout</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <span class="float-chip f-offline">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a5 5 0 0 1 5-5 5 5 0 0 1 4 2"/><path d="M2 20h20"/><path d="M8 8l-3 3"/><path d="M16 16l3 3"/></svg>
+            Offline-ready
+          </span>
+          <span class="float-chip green f-trial">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            24h free trial
+          </span>
+        </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- Features -->
-<section id="features" class="features">
-  <div class="container">
-    <h2 class="section-title">Everything You Need</h2>
-    <p class="section-sub">Built for modern retail businesses that demand reliability, speed, and intelligence.</p>
-    <div class="feature-grid">
-      <div class="feature-card">
-        <div class="feature-icon">🛒</div>
-        <h3>Point of Sale</h3>
-        <p>Lightning-fast checkout with barcode scanning, keyboard shortcuts, receipt printing, and offline support. Never lose a sale.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📦</div>
-        <h3>Inventory Management</h3>
-        <p>Real-time stock tracking, weighted average costing, reorder alerts, stock reconciliation, and complete audit trail.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🏪</div>
-        <h3>Multi-Branch</h3>
-        <p>Manage unlimited branches with centralized control, inter-branch transfers, per-branch inventory, and role-based access.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <h3>Analytics & Reports</h3>
-        <p>Sales trends, profit analysis, product performance, branch comparison, and real-time dashboard with key business metrics.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📥</div>
-        <h3>Purchasing</h3>
-        <p>Purchase orders, goods receiving, supplier management, damaged goods tracking, and purchase history with full audit trail.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔄</div>
-        <h3>Stock Transfers</h3>
-        <p>Inter-branch stock transfers with dispatch, receive, partial transfers, and weighted average cost blending across branches.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🤖</div>
-        <h3>AI Insights</h3>
-        <p>Smart demand forecasting, anomaly detection, auto-reorder suggestions, and slow-moving product identification.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📶</div>
-        <h3>Offline Mode</h3>
-        <p>Works completely offline with local SQLite database. Optional cloud sync when connected. Your data, always available.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">👥</div>
-        <h3>Role-Based Access</h3>
-        <p>Owner, Admin, Manager, Cashier roles with 44+ granular permissions. Branch-level access control and full audit logging.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Pricing -->
-<section id="pricing" class="pricing">
-  <div class="container">
-    <h2 class="section-title">Simple, Transparent Pricing</h2>
-    <p class="section-sub">Start free, upgrade when you need to. All prices in USD. No hidden fees.</p>
-    <div class="pricing-grid">
-      <div class="price-card">
-        <h3>1-Day Free Demo</h3>
-        <div class="price">$0<small> / 24 hours</small></div>
-        <ul>
-          <li>Full feature access</li>
-          <li>5 users included</li>
-          <li>2 branches</li>
-          <li>100 products</li>
-          <li>No credit card required</li>
+    <!-- Trust / value strip -->
+    <section class="value-strip" aria-label="Key benefits">
+      <div class="container">
+        <ul class="value-list">
+          <li class="value-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5a5 5 0 0 1 5-5 5 5 0 0 1 4 2"/><path d="M2 20h20"/><path d="M8 8l-3 3"/><path d="M16 16l3 3"/></svg>Offline-first</li>
+          <li class="value-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>Fast checkout</li>
+          <li class="value-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 4v5"/></svg>Real-time inventory</li>
+          <li class="value-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/></svg>Multi-branch</li>
+          <li class="value-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.3L19 10l-5.2 1.7L12 17l-1.8-5.3L5 10l5.2-1.7L12 3z"/></svg>AI-powered insights</li>
         </ul>
-        <a href="#cta" class="btn btn-outline" style="width:100%;justify-content:center">Start Free</a>
       </div>
-      <div class="price-card featured">
-        <h3>Basic</h3>
-        <div class="price">$29<small> / month</small></div>
-        <ul>
-          <li>Core features</li>
-          <li>5 users</li>
-          <li>3 branches</li>
-          <li>500 products</li>
-          <li>Priority support</li>
-        </ul>
-        <a href="https://wa.me/60175816193?text=Hi%2C%20I%20want%20to%20subscribe%20to%20Basic%20plan" target="_blank" class="btn btn-primary" style="width:100%;justify-content:center">Contact Sales</a>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="section features">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Platform</span>
+          <h2>Everything your business needs in one place</h2>
+          <p>From the front counter to the back office, QAVENO keeps sales, stock and people connected.</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card reveal">
+            <span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12.4A2 2 0 0 0 9.6 17h7.4a2 2 0 0 0 2-1.6L21 7H6"/></svg></span>
+            <h3>Point of Sale</h3>
+            <p>Fast checkout with barcode scanning, keyboard shortcuts and receipt printing — built to keep a queue moving.</p>
+          </article>
+          <article class="feature-card reveal stagger-2">
+            <span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg></span>
+            <h3>Inventory Management</h3>
+            <p>Real-time stock tracking, weighted-average costing, reorder alerts and a complete audit trail.</p>
+          </article>
+          <article class="feature-card reveal stagger-3">
+            <span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-6 9 6-9 6-9-6z"/><path d="M3 15l9 6 9-6"/></svg></span>
+            <h3>Multi-Branch</h3>
+            <p>Centralized control across branches with inter-branch transfers, per-branch stock and role-based access.</p>
+          </article>
+          <article class="feature-card reveal">
+            <span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3-6 3 3 4-8"/></svg></span>
+            <h3>Analytics &amp; Reports</h3>
+            <p>Sales trends, profit analysis and product performance with a real-time dashboard of the metrics that matter.</p>
+          </article>
+          <article class="feature-card reveal stagger-2">
+            <span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 2v6h6"/></svg></span>
+            <h3>Purchasing</h3>
+            <p>Purchase orders, goods receiving, supplier management and damaged-goods tracking with full history.</p>
+          </article>
+          <article class="feature-card reveal stagger-3">
+            <span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3l4 4-4 4"/><path d="M7 21l-4-4 4-4"/><path d="M21 7H10a6 6 0 0 0 0 12h1"/></svg></span>
+            <h3>Stock Transfers</h3>
+            <p>Inter-branch dispatch and receive with partial transfers and weighted-average cost blending.</p>
+          </article>
+          <article class="feature-card reveal">
+            <span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.3L19 10l-5.2 1.7L12 17l-1.8-5.3L5 10l5.2-1.7L12 3z"/><path d="M19 16l.9 2.6L22 19.5l-2.1.9L19 23l-.9-2.6-2.1-.9 2.1-.9L19 16z"/></svg></span>
+            <h3>AI Insights</h3>
+            <p>Demand forecasting, anomaly detection, auto-reorder suggestions and slow-mover identification.</p>
+          </article>
+          <article class="feature-card reveal stagger-2">
+            <span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5a5 5 0 0 1 5-5 5 5 0 0 1 4 2"/><path d="M2 20h20"/><path d="M8 8l-3 3"/><path d="M16 16l3 3"/></svg></span>
+            <h3>Offline-First</h3>
+            <p>Keep selling through outages with a local database. Optional cloud sync reconnects when you do.</p>
+          </article>
+          <article class="feature-card reveal stagger-3">
+            <span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg></span>
+            <h3>Role-Based Access</h3>
+            <p>Owner, admin, manager and cashier roles with granular permissions, branch-level control and audit logging.</p>
+          </article>
+        </div>
       </div>
-      <div class="price-card">
-        <h3>Pro</h3>
-        <div class="price">$79<small> / month</small></div>
-        <ul>
-          <li>All features</li>
-          <li>20 users</li>
-          <li>10 branches</li>
-          <li>5,000 products</li>
-          <li>AI Insights</li>
-          <li>Priority support</li>
-        </ul>
-        <a href="https://wa.me/60175816193?text=Hi%2C%20I%20want%20to%20subscribe%20to%20Pro%20plan" target="_blank" class="btn btn-outline" style="width:100%;justify-content:center">Contact Sales</a>
+    </section>
+
+    <!-- Product showcase -->
+    <section id="platform" class="section showcase">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Product</span>
+          <h2>One platform, every operation</h2>
+          <p>A single workspace for the counter, the warehouse and the office — no separate tools to stitch together.</p>
+        </div>
+        <div class="showcase-visual reveal">
+          <div class="window" aria-hidden="true">
+            <div class="window-bar">
+              <span class="traffic r"></span><span class="traffic y"></span><span class="traffic g"></span>
+              <span class="window-addr">qaveno — Reports</span>
+            </div>
+            <div class="app">
+              <div class="app-sidebar">
+                <span class="s-app"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5"/></svg></span>
+                <span class="s-app"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/></svg></span>
+                <span class="s-app on"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l3-6 3 3 4-8"/></svg></span>
+              </div>
+              <div class="app-main">
+                <div class="app-split">
+                  <div class="panel">
+                    <div class="panel-title">Sales trend <span class="chip">Weekly</span></div>
+                    <div class="bar-chart">
+                      <div class="bar-col"><div class="bar-fill a"></div><span>S</span></div>
+                      <div class="bar-col"><div class="bar-fill b"></div><span>M</span></div>
+                      <div class="bar-col"><div class="bar-fill c"></div><span>T</span></div>
+                      <div class="bar-col"><div class="bar-fill d"></div><span>W</span></div>
+                      <div class="bar-col"><div class="bar-fill e"></div><span>T</span></div>
+                      <div class="bar-col"><div class="bar-fill f"></div><span>F</span></div>
+                    </div>
+                  </div>
+                  <div class="panel">
+                    <div class="panel-title">Stock value</div>
+                    <div class="donut-wrap">
+                      <div class="donut" role="img" aria-label="Abstract stock distribution chart"></div>
+                      <ul class="legend">
+                        <li><span class="sw" style="background:var(--indigo-600)"></span>On hand</li>
+                        <li><span class="sw" style="background:var(--violet-500)"></span>On order</li>
+                        <li><span class="sw" style="background:#e2e8f0"></span>Other</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="price-card">
-        <h3>Enterprise</h3>
-        <div class="price">$199<small> / month</small></div>
-        <ul>
-          <li>Unlimited everything</li>
-          <li>Unlimited users</li>
-          <li>Unlimited branches</li>
-          <li>Unlimited products</li>
-          <li>AI Insights + custom</li>
-          <li>Dedicated support</li>
-        </ul>
-        <a href="https://wa.me/60175816193?text=Hi%2C%20I%20want%20to%20subscribe%20to%20Enterprise%20plan" target="_blank" class="btn btn-outline" style="width:100%;justify-content:center">Contact Sales</a>
+    </section>
+
+    <!-- How it works -->
+    <section id="how-it-works" class="section how">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Getting started</span>
+          <h2>Up and running in three steps</h2>
+          <p>From download to first sale — no setup marathon required.</p>
+        </div>
+        <div class="step-grid">
+          <div class="step reveal">
+            <span class="step-num" aria-hidden="true">1</span>
+            <h3>Download QAVENO</h3>
+            <p>Install the Windows desktop app from the official download. Your 24-hour free trial can start on first activation.</p>
+          </div>
+          <div class="step reveal stagger-2">
+            <span class="step-num" aria-hidden="true">2</span>
+            <h3>Set up your business</h3>
+            <p>Create your organization, add products, branches and team roles. Everything is configured locally and offline-safe.</p>
+          </div>
+          <div class="step reveal stagger-3">
+            <span class="step-num" aria-hidden="true">3</span>
+            <h3>Start selling</h3>
+            <p>Take sales online or offline, track inventory in real time and review performance. Your owner/admin controls access and licensing.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="section pricing">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Pricing</span>
+          <h2>Simple, transparent pricing</h2>
+          <p>Start free, upgrade when you need to. All prices shown in USD.</p>
+        </div>
+        <div class="price-grid">
+          <div class="price-card reveal">
+            <div class="p-name">1-Day Free Demo</div>
+            <div class="p-price">$0 <small>/ 24 hours</small></div>
+            <p class="p-desc">Full feature access to evaluate QAVENO.</p>
+            <ul class="p-feats">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Full feature access</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>5 users included</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>2 branches</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>100 products</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>No credit card required</li>
+            </ul>
+            <a class="btn btn-outline" href="#download">Start Free</a>
+          </div>
+
+          <div class="price-card featured reveal stagger-2">
+            <span class="p-badge">MOST POPULAR</span>
+            <div class="p-name">Basic</div>
+            <div class="p-price">$29 <small>/ month</small></div>
+            <p class="p-desc">For growing single-location businesses.</p>
+            <ul class="p-feats">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Core features</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>5 users</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>3 branches</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>500 products</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Priority support</li>
+            </ul>
+            <a class="btn btn-primary" href="https://wa.me/60175816193?text=Hi%2C%20I%20want%20to%20subscribe%20to%20Basic%20plan" target="_blank" rel="noopener">Contact Sales</a>
+          </div>
+
+          <div class="price-card reveal stagger-3">
+            <div class="p-name">Pro</div>
+            <div class="p-price">$79 <small>/ month</small></div>
+            <p class="p-desc">For multi-branch retailers and larger teams.</p>
+            <ul class="p-feats">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>All features</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>20 users</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>10 branches</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>5,000 products</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>AI Insights</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Priority support</li>
+            </ul>
+            <a class="btn btn-outline" href="https://wa.me/60175816193?text=Hi%2C%20I%20want%20to%20subscribe%20to%20Pro%20plan" target="_blank" rel="noopener">Contact Sales</a>
+          </div>
+
+          <div class="price-card reveal stagger-4">
+            <div class="p-name">Enterprise</div>
+            <div class="p-price">$199 <small>/ month</small></div>
+            <p class="p-desc">For chains and organizations at scale.</p>
+            <ul class="p-feats">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Unlimited everything</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Unlimited users</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Unlimited branches</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Unlimited products</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>AI Insights + custom</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Dedicated support</li>
+            </ul>
+            <a class="btn btn-outline" href="https://wa.me/60175816193?text=Hi%2C%20I%20want%20to%20subscribe%20to%20Enterprise%20plan" target="_blank" rel="noopener">Contact Sales</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 24-hour Demo CTA / Download -->
+    <section id="download" class="demo">
+      <div class="container">
+        <div class="demo-card reveal">
+          <span class="eyebrow">Windows · Free for 24 hours</span>
+          <h2>Try QAVENO free for your first 24 hours</h2>
+          <p>Full access to every feature — no credit card required. After the trial, your organization's owner or administrator can extend your license or activate a plan.</p>
+          <a class="btn btn-success btn-lg" href="https://github.com/249abodi/QAVENO/releases/download/v1.1.0/QAVENO-Setup-1.1.0.exe">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            Download QAVENO for Windows
+          </a>
+          <div class="demo-meta">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.3L19 10l-5.2 1.7L12 17l-1.8-5.3L5 10l5.2-1.7L12 3z"/></svg>Windows 10/11</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20h20"/><path d="M8 8l-3 3"/><path d="M16 16l3 3"/></svg>Offline-first</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Trial valid 24 hours</span>
+          </div>
+          <span class="demo-ar" dir="rtl" lang="ar">تحميل QAVENO لنظام Windows مجانًا لمدة 24 ساعة</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section id="cta" class="final-cta">
+      <div class="container">
+        <h2>Ready to transform your business?</h2>
+        <p>Download QAVENO and run your store with a professional POS and inventory platform from day one.</p>
+        <div class="cta-row">
+          <a class="btn btn-success btn-lg" href="https://github.com/249abodi/QAVENO/releases/download/v1.1.0/QAVENO-Setup-1.1.0.exe">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            Download QAVENO
+          </a>
+          <a class="btn btn-light btn-lg" href="https://wa.me/60175816193?text=Hi%20QAVENO%2C%20I%20want%20to%20learn%20more" target="_blank" rel="noopener">Contact Sales</a>
+        </div>
+        <p class="fine">First 24 hours are free · No credit card required · Your data stays on your devices</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="mini-mark" href="#" aria-label="QAVENO home">
+            <span class="brand-mark" aria-hidden="true">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 3 4 3-7"/></svg>
+            </span>
+            QAVENO
+          </a>
+          <p>Premium POS &amp; inventory management for modern retail. Offline-first, multi-branch and built to last.</p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#platform">Platform</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#download">Download</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="https://wa.me/60175816193" target="_blank" rel="noopener">WhatsApp: +60 17-581 6193</a></li>
+            <li><a href="https://wa.me/60175816193?text=Hi%20QAVENO%2C%20I%20want%20to%20talk%20to%20sales" target="_blank" rel="noopener">Talk to Sales</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <small>© 2026 QAVENO. All rights reserved.</small>
+        <small>Free trial for the first 24 hours of activation.</small>
       </div>
     </div>
-  </div>
-</section>
+  </footer>
 
-<!-- CTA -->
-<section id="cta" class="cta">
-  <div class="container">
-    <h2>Ready to Transform Your Business?</h2>
-    <p>Start your free 1-day demo today. No credit card required. Full access to all features.</p>
-    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
-      <a href="https://wa.me/60175816193?text=Hi%20QAVENO%2C%20I%20want%20to%20start%20a%20free%20demo" target="_blank" class="btn btn-whatsapp" style="padding:14px 32px;font-size:17px">💬 Contact Sales on WhatsApp</a>
-    </div>
-    <p style="margin-top:16px;font-size:14px;opacity:.7">WhatsApp: +60 17-581 6193</p>
-  </div>
-</section>
+  <script>
+    (function () {
+      'use strict';
+      var body = document.body;
+      var toggle = document.querySelector('.nav-toggle');
+      var nav = document.getElementById('primary-nav');
 
-<!-- Footer -->
-<footer class="footer">
-  <div class="container">
-    <p style="margin-bottom:8px"><strong>QAVENO</strong> — Premium POS & Inventory Management</p>
-    <p>© 2026 QAVENO. All rights reserved.</p>
-    <p style="margin-top:8px"><a href="https://wa.me/60175816193" target="_blank">WhatsApp: +60 17-581 6193</a></p>
-  </div>
-</footer>
+      if (toggle && nav) {
+        toggle.addEventListener('click', function () {
+          var open = body.classList.toggle('nav-open');
+          toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        nav.addEventListener('click', function (e) {
+          if (e.target.closest('a')) {
+            body.classList.remove('nav-open');
+            toggle.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
 
+      var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var reveals = document.querySelectorAll('.reveal');
+
+      if (!reduceMotion && 'IntersectionObserver' in window && reveals.length) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('in');
+              io.unobserve(entry.target);
+            }
+          });
+        }, { rootMargin: '0px 0px -12% 0px', threshold: 0.12 });
+        reveals.forEach(function (el) { io.observe(el); });
+      } else {
+        reveals.forEach(function (el) { el.classList.add('in'); });
+      }
+    })();
+  </script>
 </body>
 </html>
-
