@@ -369,6 +369,42 @@ body {
     color: var(--text-secondary);
 }
 
+.api-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    white-space: nowrap;
+    cursor: default;
+}
+
+.api-status::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    flex: none;
+}
+
+.api-status-checking { background: var(--info-light); color: var(--info); }
+.api-status-ok { background: var(--success-light); color: var(--success); }
+.api-status-warn { background: var(--warning-light); color: var(--warning); }
+.api-status-error { background: var(--danger-light); color: var(--danger); }
+
+.login-api-status {
+    margin-top: 12px;
+    font-weight: 500;
+    background: transparent;
+    justify-content: center;
+    width: 100%;
+}
+
+.login-api-status::before { display: none; }
+
 .page-content {
     flex: 1;
     padding: 24px;

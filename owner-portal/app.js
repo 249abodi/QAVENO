@@ -5,9 +5,14 @@ const API_BASE =
     window.QAVENO_API_OVERRIDE ||
     'https://qaveno-production.up.railway.app/api/v1';
 
+// Backend origin without the API prefix (used for the unauthenticated /health probe).
+const API_ORIGIN = API_BASE.replace(/\/api\/v1$/, '');
+
 const App = {
     token: localStorage.getItem('qaveno_owner_token'),
     currentTab: 'dashboard',
+    _apiHealth: null,
+    _lastApiIssue: null,
 
     init() {
         this.bindEvents();
@@ -19,6 +24,7 @@ const App = {
         // NOTE: no handleHash() here. Loading any tab would fire unauthenticated
         // owner API calls from the login screen and surface a misleading 401 toast.
         // Data loads only after auth succeeds (via showApp() -> handleHash()).
+        this.checkApiHealth();
     },
 
     bindEvents() {
@@ -55,6 +61,45 @@ const App = {
     handleHash() {
         const hash = window.location.hash.slice(1) || 'dashboard';
         this.switchTab(hash);
+    },
+
+    // Visual API/connectivity indicator (topbar pill + login screen line).
+    // Shows API reachability, auth state, last HTTP status and failed endpoint
+    // in the tooltip — never tokens or passwords.
+    setApiStatus(state, label, title = '') {
+        for (const id of ['api-status', 'api-status-login']) {
+            const el = document.getElementById(id);
+            if (!el) continue;
+            el.className = 'api-status' + (id === 'api-status-login' ? ' login-api-status' : '') + ' api-status-' + state;
+            el.dataset.state = state;
+            el.textContent = label;
+            el.title = title;
+        }
+    },
+
+    // Passive connectivity probe: any HTTP reply means the API is reachable.
+    // A fetch failure (DNS / TLS / CORS / backend down) is shown as unreachable.
+    async checkApiHealth() {
+        this.setApiStatus('checking', 'فحص الخادم...', '');
+        const endpoint = '/health';
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 8000);
+        try {
+            const res = await fetch(API_ORIGIN + endpoint, {
+                headers: { 'Accept': 'application/json' },
+                signal: controller.signal,
+            });
+            const authLabel = this.token ? 'جلسة محفوظة' : 'لم تسجل الدخول';
+            this._apiHealth = { reachable: true, status: res.status, endpoint };
+            const title = `API: HTTP ${res.status} (${API_ORIGIN}${endpoint})\nالمصادقة: ${authLabel}`;
+            this.setApiStatus(res.status === 200 ? 'ok' : 'warn', res.status === 200 ? 'الخادم متصل' : 'الخادم متصل', title);
+        } catch (err) {
+            this._apiHealth = { reachable: false, status: 0, endpoint };
+            this.setApiStatus('error', 'الخادم غير متصل', `تعذر الوصول إلى API (${API_ORIGIN}${endpoint}) — تحقق من الاتصال بالإنترنت أو من CORS`);
+            console.debug('[QAVENO OwnerPortal] health check failed:', API_ORIGIN + endpoint, String(err.name || err.message));
+        } finally {
+            clearTimeout(timer);
+        }
     },
 
     // Map a failed request to a clear, user-safe Arabic message without
@@ -98,6 +143,9 @@ const App = {
             });
         } catch (err) {
             // fetch throws a TypeError on DNS / connection / CORS failures.
+            this._lastApiIssue = { endpoint, status: 0, kind: 'network', at: new Date().toISOString() };
+            this.setApiStatus('error', 'الخادم غير متصل', `تعذر الوصول إلى API (${API_BASE}${endpoint})`);
+            console.debug('[QAVENO OwnerPortal] network failure:', endpoint, String(err.name || err.message));
             throw new Error(this.describeError(0, null).message);
         }
 
@@ -110,9 +158,15 @@ const App = {
 
         if (!res.ok) {
             const msg = (data && (data.message || data.error)) || '';
-            const err = new Error(this.describeError(res.status, msg, endpoint).message);
+            const d = this.describeError(res.status, msg, endpoint);
+            const err = new Error(d.message);
             err.status = res.status;
             err.endpoint = endpoint;
+            this._lastApiIssue = { endpoint, status: res.status, kind: d.kind, at: new Date().toISOString() };
+            if (d.kind === 'server') {
+                this.setApiStatus('warn', 'الخادم متصل', `API: HTTP ${res.status} عند ${endpoint}`);
+            }
+            console.debug('[QAVENO OwnerPortal] api error:', { endpoint, status: res.status, kind: d.kind });
             if (res.status === 401 && endpoint !== '/auth/login') {
                 // A rejected session on any protected endpoint is fatal: clear the
                 // stored token and return to the login screen for a fresh sign-in.
