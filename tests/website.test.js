@@ -16,7 +16,8 @@ function assert(label, ok) {
 // ── URL safety ──
 assert('no v1.0.6 references', !html.includes('v1.0.6'));
 assert('no QAVENO-Setup-1.0.0.exe references', !html.includes('QAVENO-Setup-1.0.0.exe'));
-assert('v1.1.0 download URL present', html.includes('releases/download/v1.1.0/QAVENO-Setup-1.1.0.exe'));
+assert('no v1.1.0 references', !html.includes('v1.1.0'));
+assert('v1.1.1 download URL present', html.includes('releases/download/V.1.1.1/QAVENO-Setup-1.1.1.exe'));
 
 // ── Structure ──
 assert('has skip-link', html.includes('skip-link'));
