@@ -58,5 +58,16 @@ assert('has Basic tier', html.includes('>Basic<'));
 assert('has Pro tier', html.includes('>Pro<'));
 assert('has Enterprise tier', html.includes('>Enterprise<'));
 
+// ── Brand identity (QAVENO) ──
+assert('uses QAVENO marque brand colors', html.includes('#3F51E8') && html.includes('#111C4E'));
+assert('theme-color is QAVENO navy', html.includes('content="#111c4e"'));
+assert('svg favicon declared', html.includes('rel="icon" type="image/svg+xml" href="icon.svg"'));
+assert('favicon.ico declared', html.includes('href="favicon.ico"'));
+assert('apple-touch-icon declared', html.includes('apple-touch-icon'));
+assert('og:image present', html.includes('og:image'));
+assert('no legacy violet hues remain', !html.includes('#8b5cf6') && !html.includes('#4c1d95') && !html.includes('violet-500'));
+assert('no legacy indigo mark #4f46e5 remains', !html.includes('#4f46e5'));
+assert('footer has Resources column', html.includes('Resources'));
+
 console.log('\nWebsite QA: ' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail > 0 ? 1 : 0);

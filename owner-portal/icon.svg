@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="qaveno-mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3F51E8"/>
+      <stop offset="100%" stop-color="#111C4E"/>
+    </linearGradient>
+  </defs>
+  <path d="M630.0,781.1 A320 320 0 1 1 747.1,344.0 L648.4,401.0 A206 206 0 0 1 573.0,682.4 Z" fill="url(#qaveno-mark)" transform="translate(-34 26)"/>
+  <path d="M498.4,764.0 L813.5,379.7 L852.0,238.0 L720.7,303.6 L405.6,688.0 Z" fill="url(#qaveno-mark)" transform="translate(-18 26)"/>
+</svg>

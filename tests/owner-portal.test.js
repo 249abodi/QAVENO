@@ -7,6 +7,7 @@ const ROOT = join(__dirname, '..');
 const html = readFileSync(join(ROOT, 'owner-portal', 'index.html'), 'utf8');
 const appJs = readFileSync(join(ROOT, 'owner-portal', 'app.js'), 'utf8');
 const vercelJson = readFileSync(join(ROOT, 'owner-portal', 'vercel.json'), 'utf8');
+const styleCss = readFileSync(join(ROOT, 'owner-portal', 'style.css'), 'utf8');
 
 let pass = 0;
 let fail = 0;
@@ -67,6 +68,18 @@ assert('no hardcoded password in portal JS', !appJs.includes('OwnerPass1!'));
 assert('no Basic auth / apiKey shims', !appJs.includes('Authorization: Basic') && !appJs.includes('apiKey'));
 assert('no token is ever printed to console', !/[cC]onsole\.(log|debug)\([^)]*this\.token/.test(appJs) && !appJs.includes('JSON.stringify(this.token)'));
 assert('no hardcoded fake success', !appJs.includes('return { accessToken:') && !appJs.includes("accessToken: 'fake'"));
+
+// ── Brand identity (QAVENO) ──
+assert('theme-color is QAVENO navy', html.includes('content="#111c4e"'));
+assert('svg favicon declared', html.includes('rel="icon" type="image/svg+xml" href="icon.svg"'));
+assert('favicon.ico declared', html.includes('href="favicon.ico"'));
+assert('apple-touch-icon declared', html.includes('apple-touch-icon'));
+const marqueUses = (html.match(/src="icon\.svg"/g) || []).length;
+assert('QAVENO marque used on login + sidebar', marqueUses >= 2);
+assert('sidebar wordmark labels Owner Portal', html.includes('Owner Portal'));
+assert('primary token is #3f51e8', styleCss.includes('--primary: #3f51e8;'));
+assert('primary buttons are solid (no indigo-violet gradient)', !styleCss.includes('linear-gradient(135deg, var(--primary-gradient-a)'));
+assert('no violet brand hues in stylesheet', !styleCss.includes('7c3aed') && !styleCss.includes('8b5cf6'));
 
 console.log('\nOwner Portal static QA: ' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail > 0 ? 1 : 0);
