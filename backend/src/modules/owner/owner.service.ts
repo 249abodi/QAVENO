@@ -22,6 +22,23 @@ export interface DashboardStats {
   recentActivity: LicenseHistory[];
 }
 
+/**
+ * Aggregate usage summary for the Owner Portal "Usage" page.
+ * - totalUsers:     distinct active users across organizations with an
+ *                   active/trialing subscription (real: organization_members).
+ * - activeSessions: live refresh-token sessions (real: refresh_tokens where
+ *                   revoked_at IS NULL AND expires_at > now()).
+ * - apiCalls/storage currently have NO data source in the system (no request
+ *   log table, no byte-size tracking). They are explicitly reported as
+ *   unavailable instead of a fabricated 0 so the UI renders "غير متاح".
+ */
+export interface UsageStatsSummary {
+  totalUsers: number;
+  activeSessions: number;
+  apiCalls: { available: boolean; count: number | null };
+  storage: { available: boolean; bytes: number | null };
+}
+
 export interface OrgDetail {
   organization: Organization;
   subscription: OrganizationSubscription | null;
@@ -546,6 +563,31 @@ export class OwnerService {
   }
 
   // ── Usage stats ────────────────────────────────────────────────────
+
+  async getUsageStatsSummary(): Promise<UsageStatsSummary> {
+    const em = this.subRepo.manager;
+
+    const [userRows, sessionRows] = await Promise.all([
+      em.query(
+        `SELECT COUNT(DISTINCT om.user_id)::int AS c
+         FROM organization_members om
+         JOIN organization_subscriptions s ON s.organization_id = om.organization_id
+         WHERE om.status = 'active' AND s.status IN ('active', 'trialing')`,
+      ),
+      em.query(
+        `SELECT COUNT(*)::int AS c
+         FROM refresh_tokens
+         WHERE revoked_at IS NULL AND expires_at > now()`,
+      ),
+    ]);
+
+    return {
+      totalUsers: Number(userRows[0]?.c ?? 0),
+      activeSessions: Number(sessionRows[0]?.c ?? 0),
+      apiCalls: { available: false, count: null },
+      storage: { available: false, bytes: null },
+    };
+  }
 
   async getUsageStats(): Promise<Array<{
     orgId: number; orgName: string;

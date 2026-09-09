@@ -234,4 +234,10 @@ export class OwnerController {
   async usage() {
     return this.ownerSvc.getUsageStats();
   }
+
+  @Get('usage/stats')
+  @RequirePermission('platform.usage')
+  async usageStats() {
+    return this.ownerSvc.getUsageStatsSummary();
+  }
 }

@@ -1334,25 +1334,41 @@ const App = {
     },
 
     /* ==================== USAGE ==================== */
+    // /owner/usage/stats returns real aggregates from the production API:
+    //   { totalUsers, activeSessions, apiCalls:{available,count}, storage:{available,bytes} }
+    // metrics whose data source does not exist are reported as unavailable and
+    // rendered as "غير متاح" — never as a fabricated 0.
     async loadUsage() {
         this._skeletonUsage(true);
         try {
-            const data = await this.api('/owner/usage');
+            const data = await this.api('/owner/usage/stats');
             const usage = data.data || data;
 
-            document.getElementById('usage-total-users').textContent = usage.totalUsers ?? usage.total_users ?? '-';
-            document.getElementById('usage-api-calls').textContent = this.formatNumber(usage.apiCalls ?? usage.api_calls ?? 0);
-            document.getElementById('usage-storage').textContent = usage.storage ?? usage.storageUsed ?? '-';
-            document.getElementById('usage-active-sessions').textContent = usage.activeSessions ?? usage.active_sessions ?? '-';
-            this._skeletonUsage(false);
+            this._renderUsageStat('usage-total-users', usage.totalUsers != null ? this.formatArabicNumber(usage.totalUsers) : null);
+            this._renderUsageStat('usage-active-sessions', usage.activeSessions != null ? this.formatArabicNumber(usage.activeSessions) : null);
+
+            const api = usage.apiCalls;
+            this._renderUsageStat('usage-api-calls',
+                api && api.available === true ? this.formatArabicNumber(api.count ?? 0) : 'غير متاح');
+
+            const sto = usage.storage;
+            this._renderUsageStat('usage-storage',
+                sto && sto.available === true ? this.formatBytes(sto.bytes) : 'غير متاح');
         } catch (err) {
-            this._skeletonUsage(false);
-            document.getElementById('usage-total-users').textContent = '-';
-            document.getElementById('usage-api-calls').textContent = '-';
-            document.getElementById('usage-storage').textContent = '-';
-            document.getElementById('usage-active-sessions').textContent = '-';
+            this._renderUsageStat('usage-total-users', null);
+            this._renderUsageStat('usage-api-calls', null);
+            this._renderUsageStat('usage-storage', null);
+            this._renderUsageStat('usage-active-sessions', null);
             this.toast('خطأ في تحميل بيانات الاستخدام: ' + err.message, 'error');
+        } finally {
+            this._skeletonUsage(false);
         }
+    },
+
+    _renderUsageStat(id, value) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = value == null ? 'غير متاح' : value;
     },
 
     /* ==================== MODAL ==================== */
@@ -1511,6 +1527,26 @@ const App = {
         if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
         if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
         return num.toString();
+    },
+
+    // Arabic-Indic numerals (٠-٩) with Arabic thousands separators and Arabic
+    // compact units (ألف / مليون). Returns null when the value is not usable.
+    formatArabicNumber(num) {
+        if (num == null || !isFinite(num)) return null;
+        const ar = (v) => v.toLocaleString('ar-EG', { maximumFractionDigits: 1 });
+        if (Math.abs(num) >= 1000000) return ar(num / 1000000) + ' مليون';
+        if (Math.abs(num) >= 1000) return ar(num / 1000) + ' ألف';
+        return ar(num);
+    },
+
+    // Human-readable byte size with Arabic-Indic numerals and Arabic units.
+    formatBytes(bytes) {
+        if (bytes == null || !isFinite(bytes) || bytes < 0) return null;
+        const units = ['بايت', 'كيلوبايت', 'ميجابايت', 'جيجابايت', 'تيرابايت'];
+        let i = 0;
+        let v = bytes;
+        while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+        return v.toLocaleString('ar-EG', { maximumFractionDigits: 1 }) + ' ' + units[i];
     }
 };
 

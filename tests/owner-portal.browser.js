@@ -57,6 +57,67 @@ function serve(dir) {
   });
 }
 
+async function usageScenario(browser, baseUrl) {
+  async function run(statsBody, label) {
+    const ctx = await browser.newContext();
+    await ctx.addInitScript(() => {
+      localStorage.setItem('qaveno_owner_token', 'usage-e2e-token');
+    });
+    await ctx.route('https://qaveno-production.up.railway.app/**', (route) => {
+      const pathname = new URL(route.request().url()).pathname;
+      const json = (body) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+      if (pathname === '/health') return json({ status: 'ok' });
+      if (pathname === '/api/v1/auth/me') return json({ id: 1, username: 'owner', role: 'owner', displayName: 'المالك' });
+      if (pathname === '/api/v1/owner/dashboard') return json({ totalOrgs: 2, activeOrgs: 1, activeLicenses: 1, recentActivity: [] });
+      if (pathname === '/api/v1/owner/usage/stats') return json(statsBody);
+      return route.abort();
+    });
+
+    const page = await ctx.newPage();
+    await page.goto(baseUrl + '/#usage', { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => {
+        const el = document.getElementById('usage-total-users');
+        return el && !el.classList.contains('skeleton') && el.textContent.trim() !== '';
+      },
+      null,
+      { timeout: 15000 }
+    );
+    const values = await page.evaluate(() => ({
+      users: document.getElementById('usage-total-users').textContent.trim(),
+      api: document.getElementById('usage-api-calls').textContent.trim(),
+      storage: document.getElementById('usage-storage').textContent.trim(),
+      sessions: document.getElementById('usage-active-sessions').textContent.trim(),
+    }));
+    report('[' + label + '] real users value rendered', values.users === '١٫٣ ألف');
+    report('[' + label + '] Arabic-Indic numerals used', /[\u0660-\u0669]/.test(values.users) || /[\u0660-\u0669]/.test(values.sessions));
+    report('[' + label + '] real active sessions rendered', values.sessions === '٤');
+    return { values, ctx };
+  }
+
+  const unavailable = await run({
+    totalUsers: 1250,
+    activeSessions: 4,
+    apiCalls: { available: false, count: null },
+    storage: { available: false, bytes: null },
+  }, 'unavailable');
+  report('unavailable apiCalls shows "غير متاح" (not 0)', unavailable.values.api === 'غير متاح');
+  report('unavailable storage shows "غير متاح" (not -)', unavailable.values.storage === 'غير متاح');
+  await unavailable.ctx.close();
+
+  const available = await run({
+    totalUsers: 1250,
+    activeSessions: 4,
+    apiCalls: { available: true, count: 999 },
+    storage: { available: true, bytes: 3.5 * 1024 * 1024 * 1024 },
+  }, 'available');
+  report('available apiCalls formatted Arabic', available.values.api === '٩٩٩');
+  report('available storage formatted as GB Arabic', available.values.storage === '٣٫٥ جيجابايت');
+  report('available mode never shows "غير متاح" for supplied metrics',
+    available.values.api !== 'غير متاح' && available.values.storage !== 'غير متاح');
+  await available.ctx.close();
+}
+
 async function main() {
   const server = TARGET_URL ? null : await serve(ROOT);
   const baseUrl = TARGET_URL || `http://127.0.0.1:${server.address().port}`;
@@ -140,6 +201,10 @@ async function main() {
     /Bearer\s+[\w.-]+/.test(l) || l.includes('OwnerPass1!') || l.includes('qaveno_owner_token')
   );
   report('no token/password leaks in console', !secretLeak);
+
+  if (!TARGET_URL) {
+    await usageScenario(browser, baseUrl);
+  }
 
   await browser.close();
   if (server) server.close();

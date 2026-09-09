@@ -49,6 +49,19 @@ assert('dashboard maps activeOrgs', appJs.includes('stats.activeOrgs ??'));
 assert('dashboard maps recentActivity list', appJs.includes('stats.recentActivity ??'));
 assert('activity list renders server reason/action', appJs.includes('this.historyLabel(a.action)'));
 
+// ── Usage page contract (aggregate summary, no fabricated zeros) ──
+assert('usage reads the aggregate endpoint /owner/usage/stats', appJs.includes("'/owner/usage/stats'"));
+assert('usage reads real totalUsers', appJs.includes('usage.totalUsers != null ? this.formatArabicNumber(usage.totalUsers)'));
+assert('usage reads real activeSessions', appJs.includes('usage.activeSessions != null ? this.formatArabicNumber(usage.activeSessions)'));
+assert('unavailable API-calls metric renders "غير متاح" not 0', appJs.includes("api && api.available === true ? this.formatNumber") || appJs.includes("api && api.available === true ? this.formatArabicNumber"));
+assert('fabricated apiCalls "?? 0" fallback removed', !appJs.includes('usage.apiCalls ?? usage.api_calls ?? 0'));
+assert('unavailable storage metric renders "غير متاح" not -', appJs.includes("sto && sto.available === true ? this.formatBytes"));
+assert('"غير متاح" sentinel used for null metrics', appJs.includes("'غير متاح'") && appJs.includes("el.textContent = value == null ? 'غير متاح' : value;"));
+assert('Arabic-Indic number formatting implemented', appJs.includes('formatArabicNumber(num) {'));
+assert('Arabic byte formatting implemented', appJs.includes('formatBytes(bytes) {'));
+assert('backend unavailable flag contract parsed', appJs.includes('api.available') && appJs.includes('sto.available'));
+assert('usage skeleton stays wired', appJs.includes("_skeletonUsage(true)") && appJs.includes("_skeletonUsage(false)"));
+
 // ── No secrets / no fake auth ──
 assert('no hardcoded password in portal JS', !appJs.includes('OwnerPass1!'));
 assert('no Basic auth / apiKey shims', !appJs.includes('Authorization: Basic') && !appJs.includes('apiKey'));

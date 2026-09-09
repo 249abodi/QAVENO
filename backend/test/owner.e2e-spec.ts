@@ -98,6 +98,11 @@ describe('Owner Authorization - Normal users cannot access owner panel', () => {
     const res = await req(ctx, admin, 'get', '/api/v1/owner/usage');
     expect(res.status).toBe(403);
   });
+
+  it('admin cannot access usage stats summary', async () => {
+    const res = await req(ctx, admin, 'get', '/api/v1/owner/usage/stats');
+    expect(res.status).toBe(403);
+  });
 });
 
 // ── 2. Dashboard ─────────────────────────────────────────────────────
@@ -394,6 +399,28 @@ describe('Usage Stats', () => {
     const res = await req(ctx, owner, 'get', '/api/v1/owner/usage');
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
+  });
+
+  it('returns real aggregate usage summary', async () => {
+    // Set up an active, licensed org so the aggregate counts come from real
+    // rows (seedOwner's login also leaves a live refresh token behind).
+    const org = await createOrg('Usage Stats Org');
+    const plan = await createPlan('stats-plan');
+    const lic = await req(ctx, owner, 'post', '/api/v1/owner/licenses/create')
+      .send({ organizationId: org.id, planId: plan.id, notes: 'usage stats test' });
+    expect(lic.status).toBe(201);
+    const activate = await ctx.api().post('/api/v1/owner/activate')
+      .send({ licenseCode: lic.body.licenseCode, organizationId: org.id });
+    expect(activate.status).toBe(200);
+
+    const res = await req(ctx, owner, 'get', '/api/v1/owner/usage/stats');
+    expect(res.status).toBe(200);
+    expect(typeof res.body.totalUsers).toBe('number');
+    expect(res.body.totalUsers).toBeGreaterThanOrEqual(1);
+    expect(typeof res.body.activeSessions).toBe('number');
+    expect(res.body.activeSessions).toBeGreaterThanOrEqual(1);
+    expect(res.body.apiCalls).toEqual({ available: false, count: null });
+    expect(res.body.storage).toEqual({ available: false, bytes: null });
   });
 });
 
