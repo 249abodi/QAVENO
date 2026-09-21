@@ -13,7 +13,10 @@ const os = require('node:os');
 
 const ROOT = path.join(__dirname, '..');
 const DATA = path.join(ROOT, 'data');
+const UD1 = path.join(os.homedir(), 'AppData', 'Roaming', 'QAVENO');
+const UD2 = path.join(os.homedir(), 'AppData', 'Roaming', 'qaveno');
 const BAK = path.join(os.tmpdir(), 'qaveno-data-e2e-' + Date.now());
+const license = require('../src/main/license'); // signs trial tokens for seeding license.json
 
 let passed = 0;
 let failed = 0;
@@ -34,8 +37,11 @@ async function waitFor(pred, label, timeout = 20000) {
 }
 
 (async () => {
-  const hadData = fs.existsSync(DATA);
-  if (hadData) fs.renameSync(DATA, BAK);
+  fs.mkdirSync(BAK, { recursive: true });
+  const backups = [];
+  for (const p of [DATA, UD1, UD2]) {
+    if (fs.existsSync(p)) { const b = path.join(BAK, path.basename(p).replace(/:/g, '_')); fs.renameSync(p, b); backups.push([p, b]); }
+  }
   let app = null;
   let admin = null;
   let adminErrors = [];
@@ -59,7 +65,32 @@ async function waitFor(pred, label, timeout = 20000) {
     await login.click('#submitBtn');
     ok(true, 'owner account created');
 
-    console.log('\n[B] Cashier window opens (auto after setup)');
+    console.log('\n[A2] License gate: fresh install must NOT auto-open the app');
+    await waitFor(async () => await login.evaluate(() => !document.getElementById('licenseScreen').classList.contains('hidden')), 'license screen after setup');
+    ok(true, 'license/activation screen shown after setup (no auto-open without license)');
+
+    console.log('\n[A3] Seed a valid 24h trial and reconnect through the gate');
+    const fp = license.getDeviceFingerprint();
+    const trialEnd = Date.now() + 24 * 3600 * 1000;
+    fs.mkdirSync(UD1, { recursive: true });
+    fs.writeFileSync(path.join(UD1, 'license.json'), JSON.stringify({
+      type: 'trial', organizationId: 1, deviceFingerprint: fp,
+      startedAt: new Date(Date.now() - 1000).toISOString(),
+      expiresAt: new Date(trialEnd).toISOString(),
+      trialToken: license.signToken({ org: 1, end: trialEnd, device: fp }),
+      lastValidatedAt: new Date().toISOString(), status: 'active', hardExpired: false,
+    }, null, 2), 'utf8');
+    await app.close();
+    app = await _electron.launch({ args: ['.'], cwd: ROOT, timeout: 90000 });
+    await waitFor(async () => (await allWindows()).length >= 1, 'login window (relaunch)');
+    login = (await allWindows()).find(w => w.url().includes('login'));
+    await waitFor(async () => await login.evaluate(() => document.getElementById('username') !== null), 'username field (relaunch)');
+    await login.fill('#username', 'owner');
+    await login.fill('#password', 'test1234');
+    await login.click('#submitBtn');
+    ok(true, 'valid trial login submitted');
+
+    console.log('\n[B] Cashier window opens (valid trial granted entry)');
     await waitFor(async () => (await allWindows()).some(w => w.url().includes('cashier')), 'cashier window');
     const cashier = (await allWindows()).find(w => w.url().includes('cashier'));
     await waitFor(async () => await cashier.evaluate(() => document.getElementById('storeName') && document.getElementById('storeName').textContent.trim().length > 0), 'cashier settings loaded');
@@ -216,8 +247,10 @@ async function waitFor(pred, label, timeout = 20000) {
       try { await app.close(); } catch { /* ignore */ }
     }
   } finally {
-    if (fs.existsSync(DATA)) fs.rmSync(DATA, { recursive: true, force: true });
-    if (hadData) fs.renameSync(BAK, DATA);
+    for (const [p, b] of backups) {
+      if (fs.existsSync(p)) fs.rmSync(p, { recursive: true, force: true });
+      if (fs.existsSync(b)) fs.renameSync(b, p);
+    }
   }
 
   console.log(`\n========== currency-change E2E: ${passed} passed, ${failed} failed ==========`);

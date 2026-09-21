@@ -30,20 +30,38 @@ function setBusy(isBusy, label) {
 /* ── License screen ────────────────────────────────────────────── */
 
 function showLicenseScreen() {
-  $('loginForm').closest('section').querySelector('.brand').style.display = 'none';
+  const form = $('#loginForm');
+  form.closest('section').querySelector('.brand').style.display = 'none';
   $('#formTitle').style.display = 'none';
   $('#formSub').style.display = 'none';
-  $('loginForm').style.display = 'none';
+  form.style.display = 'none';
   $('#licenseScreen').classList.remove('hidden');
   checkLicenseStatus();
 }
 
 function hideLicenseScreen() {
-  $('loginForm').closest('section').querySelector('.brand').style.display = '';
+  const form = $('#loginForm');
+  form.closest('section').querySelector('.brand').style.display = '';
   $('#formTitle').style.display = '';
   $('#formSub').style.display = '';
-  $('loginForm').style.display = '';
+  form.style.display = '';
   $('#licenseScreen').classList.add('hidden');
+}
+
+/*
+ * Classify a license status for the login gate.
+ *  - 'ok'          -> active trial or active license: login allowed
+ *  - 'none'        -> no license/trial at all: user must start a trial or activate
+ *  - 'blocked'     -> expired / suspended / revoked / tampered: locked (never allowed)
+ *  - 'unavailable' -> unreadable / unexpected state: fail-closed, never allow login
+ */
+function licenseVerdict(st) {
+  if (!st || st.type === 'none' || st.status === 'none') return 'none';
+  if (st.status === 'expired' || st.status === 'suspended' || st.status === 'revoked' || st.status === 'tampered') {
+    return 'blocked';
+  }
+  if (st.status === 'active') return 'ok';
+  return 'unavailable';
 }
 
 /* ── Lock screen (expired / suspended / revoked / tampered) ───────── */
@@ -78,10 +96,11 @@ function hideLockScreen() {
 function restoreLogin() {
   hideLockScreen();
   $('#licenseScreen').classList.add('hidden');
-  $('loginForm').closest('section').querySelector('.brand').style.display = '';
+  const form = $('#loginForm');
+  form.closest('section').querySelector('.brand').style.display = '';
   $('#formTitle').style.display = '';
   $('#formSub').style.display = '';
-  $('loginForm').style.display = '';
+  form.style.display = '';
 }
 
 async function checkLicenseStatus() {
@@ -101,7 +120,9 @@ async function checkLicenseStatus() {
       // No license, no trial — show trial button
       $('#trialBtn').classList.remove('hidden');
     }
-  } catch { /* first run */ }
+  } catch {
+    showLicErr(t('login.license.failed'));
+  }
 }
 
 function showTrialBanner(trial) {
@@ -201,13 +222,29 @@ $('#trialBtn').addEventListener('click', async () => {
   }
 });
 
-$('#skipBtn').addEventListener('click', async () => {
-  try { await window.pos.auth.login('owner', ''); } catch { /* ok */ }
-});
+/* Complete the flow after starting a trial / activating a license. Credentials
+   that were typed into the login form are re-submitted through the enforced main
+   gate — entering is only possible once the license state is active. */
+async function enterTheApp() {
+  const username = $('#username').value.trim();
+  const password = $('#password').value;
+  hideErr();
+  hideLicErr();
+  setBusy(true, t('login.signingIn'));
+  try {
+    await window.pos.auth.login(username, password);
+    // main process swaps this window for the POS window
+  } catch (err) {
+    const msg = err && err.message ? err.message : t('login.err.generic');
+    showErr(msg);
+    showLicErr(msg);
+    setBusy(false, t('login.submit'));
+  }
+}
 
-$('#goAppBtn').addEventListener('click', async () => {
-  try { await window.pos.auth.login('owner', ''); } catch { /* ok */ }
-});
+$('#skipBtn').addEventListener('click', enterTheApp);
+
+$('#goAppBtn').addEventListener('click', enterTheApp);
 
 /* ── Lock screen actions ────────────────────────────────────────── */
 
@@ -323,25 +360,33 @@ $('#loginForm').addEventListener('submit', async (e) => {
       setBusy(false, t('login.submit'));
     }
   } else {
-    // Check license before login
+    // License gate (fail-closed). Entering the app requires a valid, active
+    // trial or license. Any error while determining license state BLOCKS login
+    // instead of silently proceeding to auth.login.
+    let st;
     try {
-      const st = await window.pos.license.status();
-      if (st.type === 'none') {
-        showLicenseScreen();
-        setBusy(false, t('login.submit'));
-        return;
-      }
-      if ((st.type === 'trial' && st.status === 'expired') || (st.type === 'license' && st.status === 'expired')) {
-        showLockScreen(st);
-        setBusy(false, t('login.submit'));
-        return;
-      }
-      if (st.status === 'tampered' || st.status === 'suspended' || st.status === 'revoked') {
-        showLockScreen(st);
-        setBusy(false, t('login.submit'));
-        return;
-      }
-    } catch { /* no license module, proceed */ }
+      st = await window.pos.license.status();
+    } catch {
+      showErr(t('login.license.failed'));
+      setBusy(false, t('login.submit'));
+      return;
+    }
+    const verdict = licenseVerdict(st);
+    if (verdict === 'none') {
+      showLicenseScreen();
+      setBusy(false, t('login.submit'));
+      return;
+    }
+    if (verdict === 'blocked') {
+      showLockScreen(st);
+      setBusy(false, t('login.submit'));
+      return;
+    }
+    if (verdict === 'unavailable') {
+      showErr(t('login.license.failed'));
+      setBusy(false, t('login.submit'));
+      return;
+    }
 
     setBusy(true, t('login.signingIn'));
     try {

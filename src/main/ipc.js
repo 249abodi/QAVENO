@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const db = require('./db');
 const pdf = require('./pdf');
 const auth = require('./auth');
+const license = require('./license');
 const purchases = require('./purchases');
 const inventory = require('./inventory');
 const branches = require('./branches');
@@ -104,7 +105,12 @@ function register(getAdminWindow, hooks = {}, getOwnerWindowFn) {
     const pu = auth.setupOwner({ username, password, display_name });
     const { token } = auth.createSession(pu.id);
     auth.bindWindow(e.sender.id, token);
-    if (onLogin) onLogin(e.sender.id, pu, token);
+    // First-run setup creates the owner but must NOT auto-open the licensed app
+    // until a trial is started or a license activated. If a valid license already
+    // exists (e.g. DB wiped but license.json kept on reinstall), resume into the app.
+    const lic = license.getLicenseStatus();
+    const usable = lic && lic.status === 'active' && (lic.type === 'trial' || lic.type === 'license');
+    if (onLogin && usable) onLogin(e.sender.id, pu, token);
     return {
       user: pu,
       permissions: auth.permissionsOf({ role: pu.role, status: 'active' }),
@@ -118,6 +124,17 @@ function register(getAdminWindow, hooks = {}, getOwnerWindowFn) {
       if (res.reason === 'disabled') throw new Error('هذا الحساب معطل. راجع مدير النظام');
       // generic message: no user enumeration
       throw new Error('اسم المستخدم أو كلمة المرور غير صحيحة');
+    }
+    // License gate (fail-closed). Without a valid active trial/license, even valid
+    // credentials must never open the app — this holds even if a renderer bypasses
+    // the UI gate.
+    const lic = license.getLicenseStatus();
+    const usable = lic && lic.status === 'active' && (lic.type === 'trial' || lic.type === 'license');
+    if (!usable) {
+      if (lic && (lic.status === 'expired' || lic.status === 'suspended' || lic.status === 'revoked' || lic.status === 'tampered')) {
+        throw new Error('تم إيقاف الوصول إلى QAVENO. تواصل مع مدير النظام لتمديد الترخيص.');
+      }
+      throw new Error('يجب تفعيل الترخيص أو بدء التجربة المجانية قبل الدخول');
     }
     const { token } = auth.createSession(res.user.id);
     auth.bindWindow(e.sender.id, token);
