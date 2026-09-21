@@ -1308,13 +1308,15 @@ async function loadSettingsForm() {
 $('settingsForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = e.target;
+  const currencyCode = f.currency.value;
+  const entry = (window.CURRENCIES || []).find(c => c.code === currencyCode);
+  const currencySymbol = entry ? entry.symbol : currencyCode;
   try {
     for (const key of ['store_name', 'tax_rate']) {
       await window.pos.settings.set(key, f[key].value);
     }
-    const entry = (window.CURRENCIES || []).find(c => c.code === f.currency.value);
-    await window.pos.settings.set('currency', entry ? entry.symbol : f.currency.value);
-    await window.pos.settings.set('currency_code', f.currency.value);
+    await window.pos.settings.set('currency', currencySymbol);
+    await window.pos.settings.set('currency_code', currencyCode);
     toast(t('toast.saved'), 'success');
     loadSettingsForm();
   } catch (err) {

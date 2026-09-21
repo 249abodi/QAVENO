@@ -1,9 +1,12 @@
 'use strict';
 
-/* QAVENO — Arabic currency dataset for the 22 Arab League states.
+/* QAVENO — Currency dataset.
    Each entry: ISO 4217 code, display symbol, country (short AR/EN), and
    currency name in Arabic + English. Used by the admin settings to let the
-   owner pick a real currency instead of typing an arbitrary symbol. */
+   owner pick a real currency instead of typing an arbitrary symbol.
+   Covers the Arab League states plus common international display
+   currencies (USD, EUR). The Israeli Shekel is intentionally excluded from
+   the selectable set. */
 
 const CURRENCIES = [
   { code: 'SAR', symbol: 'ر.س', country: 'السعودية', countryEn: 'Saudi Arabia', nameAr: 'ريال سعودي', nameEn: 'Saudi Riyal' },
@@ -27,7 +30,8 @@ const CURRENCIES = [
   { code: 'SOS', symbol: 'ش.ص', country: 'الصومال', countryEn: 'Somalia', nameAr: 'شلن صومالي', nameEn: 'Somali Shilling' },
   { code: 'DJF', symbol: 'ف.ج', country: 'جيبوتي', countryEn: 'Djibouti', nameAr: 'فرنك جيبوتي', nameEn: 'Djiboutian Franc' },
   { code: 'KMF', symbol: 'ف.ق', country: 'جزر القمر', countryEn: 'Comoros', nameAr: 'فرنك قمري', nameEn: 'Comorian Franc' },
-  { code: 'ILS', symbol: '₪', country: 'فلسطين', countryEn: 'Palestine', nameAr: 'شيكل إسرائيلي جديد', nameEn: 'New Israeli Shekel' }
+  { code: 'USD', symbol: '$', country: 'الولايات المتحدة', countryEn: 'United States', nameAr: 'دولار أمريكي', nameEn: 'US Dollar' },
+  { code: 'EUR', symbol: '€', country: 'أوروبا', countryEn: 'Europe', nameAr: 'يورو', nameEn: 'Euro' }
 ];
 
 function currencyByCode(code) {
