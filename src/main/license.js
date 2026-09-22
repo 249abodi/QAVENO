@@ -1,5 +1,5 @@
 /* QAVENO — Client-side License Manager (Phase 35)
-   Server-authoritative 24h trial with HMAC anti-tamper.
+   Server-authoritative 24h trial with Ed25519 anti-tamper.
    Device fingerprint prevents reinstall/reset abuse. */
 
 'use strict';
@@ -61,23 +61,38 @@ function getMachineId() {
   return 'fallback-' + os.hostname();
 }
 
-/* ── HMAC Verification ─────────────────────────────────────────── */
+/* ── Ed25519 Verification ──────────────────────────────────────── */
 
-// This secret MUST match QAVENO_TRIAL_HMAC_SECRET on the backend
-const HMAC_SECRET = process.env.QAVENO_TRIAL_SECRET || 'qaveno-trial-hmac-secret-change-in-production';
+const { getPublicKeyForKid } = require('./trial-keys');
 
-function signToken(payload) {
-  const data = typeof payload === 'string' ? payload : JSON.stringify(payload);
-  const sig = crypto.createHmac('sha256', HMAC_SECRET).update(data).digest('hex');
-  return Buffer.from(JSON.stringify({ p: data, s: sig })).toString('base64url');
-}
-
+/**
+ * verifyToken — verifies an Ed25519-signed trial token produced by the backend.
+ *
+ * Token envelope: Base64URL( JSON({ p: <payload-string>, s: <hex-sig-128-chars> }) )
+ * Payload must contain a `kid` field matching a known public key.
+ * Returns { valid: false } for ANY of: malformed, unknown kid, bad signature.
+ */
 function verifyToken(token) {
   try {
     const decoded = JSON.parse(Buffer.from(token, 'base64url').toString());
-    const expectedSig = crypto.createHmac('sha256', HMAC_SECRET).update(decoded.p).digest('hex');
-    if (decoded.s !== expectedSig) return { valid: false };
-    return { valid: true, data: JSON.parse(decoded.p) };
+    if (!decoded || typeof decoded.p !== 'string' || typeof decoded.s !== 'string') {
+      return { valid: false };
+    }
+    const payloadObj = JSON.parse(decoded.p);
+    const kid = payloadObj && payloadObj.kid;
+    if (!kid) return { valid: false };
+    const publicKey = getPublicKeyForKid(kid);
+    if (!publicKey) return { valid: false };
+    const sigBuf = Buffer.from(decoded.s, 'hex');
+    if (sigBuf.length !== 64) return { valid: false }; // Ed25519 sig = 64 bytes
+    const valid = crypto.verify(
+      null,
+      Buffer.from(decoded.p, 'utf8'),
+      publicKey,
+      sigBuf,
+    );
+    if (!valid) return { valid: false };
+    return { valid: true, data: payloadObj };
   } catch {
     return { valid: false };
   }
@@ -134,7 +149,7 @@ async function startTrial(cloudApiBase, organizationId) {
     deviceFingerprint: fingerprint,
     startedAt: body.subscription.trialStartsAt,
     expiresAt: body.subscription.trialEndsAt,
-    trialToken: body.trialToken, // HMAC-signed by server
+    trialToken: body.trialToken, // Ed25519-signed by server
     lastValidatedAt: new Date().toISOString(),
     status: 'active',
     hardExpired: false,
@@ -148,7 +163,7 @@ function getTrialInfo() {
   const lic = licenseCache || loadLicense();
   if (!lic || lic.type !== 'trial') return null;
 
-  // Step 1: Verify HMAC signature
+  // Step 1: Verify Ed25519 signature
   if (lic.trialToken) {
     const tokenCheck = verifyToken(lic.trialToken);
     if (!tokenCheck.valid) {
@@ -361,4 +376,4 @@ function register(licenseMainWindow) {
   });
 }
 
-module.exports = { init, register, getLicenseStatus, getTrialInfo, startTrial, activateLicense, isFeatureAllowed, getDeviceFingerprint, verifyToken, signToken, revalidateNow, clearLicense };
+module.exports = { init, register, getLicenseStatus, getTrialInfo, startTrial, activateLicense, isFeatureAllowed, getDeviceFingerprint, verifyToken, revalidateNow, clearLicense };

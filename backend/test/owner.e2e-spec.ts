@@ -1,5 +1,6 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import * as crypto from 'crypto';
 import { startTestBackend, seedOwner, TestCtx, req, Session, resetDb } from './bootstrap-pg';
 import { AllExceptionsFilter } from '../src/common/all-exceptions.filter';
 import { OrganizationSubscription } from '../src/database/entities';
@@ -487,7 +488,7 @@ describe('Phase 35 — Server-Authoritative Trial', () => {
     expect(res.body.trialToken).toBeTruthy();
   });
 
-  it('HMAC token is valid and verifiable', async () => {
+  it('Ed25519 token is valid and verifiable', async () => {
     const trialRes = await (ctx.api() as any).post('/api/v1/owner/trial/start')
       .send({ organizationId: trialOrg.id, deviceFingerprint: 'test-fingerprint-abc123' });
     const token = trialRes.body.trialToken;
@@ -500,7 +501,7 @@ describe('Phase 35 — Server-Authoritative Trial', () => {
     expect(verifyRes.body.data.device).toBe('test-fingerprint-abc123');
   });
 
-  it('rejects tampered HMAC token', async () => {
+  it('rejects tampered trial token', async () => {
     const trialRes = await (ctx.api() as any).post('/api/v1/owner/trial/start')
       .send({ organizationId: trialOrg.id, deviceFingerprint: 'test-fingerprint-abc123' });
     const token = trialRes.body.trialToken;
@@ -509,6 +510,24 @@ describe('Phase 35 — Server-Authoritative Trial', () => {
       .send({ token: tampered });
     expect(verifyRes.status).toBe(200);
     expect(verifyRes.body.valid).toBe(false);
+  });
+
+  it('verify-token rejects a token signed by a different key', async () => {
+    const { privateKey: otherKey } = crypto.generateKeyPairSync('ed25519');
+    const payload = JSON.stringify({
+      org: trialOrg.id,
+      start: Date.now(),
+      end: Date.now() + 3600_000,
+      device: 'other-key-fp',
+      ts: Date.now(),
+      kid: 'other',
+    });
+    const sig = crypto.sign(null, Buffer.from(payload, 'utf8'), otherKey).toString('hex');
+    const forged = Buffer.from(JSON.stringify({ p: payload, s: sig })).toString('base64url');
+    const res = await (ctx.api() as any).post('/api/v1/owner/trial/verify-token')
+      .send({ token: forged });
+    expect(res.status).toBe(200);
+    expect(res.body.valid).toBe(false);
   });
 
   it('rejects trial start without deviceFingerprint', async () => {

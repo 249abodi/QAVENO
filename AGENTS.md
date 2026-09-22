@@ -35,7 +35,7 @@ QAVENO — POS & inventory desktop app + cloud backend + static marketing site. 
 
 ## Env
 
-- Root `.env.example` documents backend/Postgres vars (`POSTGRES_*`, `JWT_SECRET`, `CORS_ORIGINS`, `QAVENO_TRIAL_SECRET`). `website/` and `owner-portal/` each carry their own `.env.local`.
-- `docker-compose.yml` runs postgres + backend and requires `POSTGRES_PASSWORD`, `JWT_SECRET`, `QAVENO_TRIAL_SECRET` set in the environment.
+- Root `.env.example` documents backend/Postgres vars (`POSTGRES_*`, `JWT_SECRET`, `CORS_ORIGINS`, `QAVENO_TRIAL_PRIVATE_KEY`, `QAVENO_TRIAL_KEY_ID`). `website/` and `owner-portal/` each carry their own `.env.local`.
+- `docker-compose.yml` runs postgres + backend and requires `POSTGRES_PASSWORD`, `JWT_SECRET`, `QAVENO_TRIAL_PRIVATE_KEY` (and defaults `QAVENO_TRIAL_KEY_ID` to `prod-1`) set in the environment.
 
 There is no lint/format/typecheck command configured anywhere in the repo.

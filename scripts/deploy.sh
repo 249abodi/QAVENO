@@ -30,7 +30,7 @@ fi
 # ── Step 3: Verify environment ──────────────────────────────────
 echo ""
 echo "▸ Verifying environment variables..."
-REQUIRED_VARS="POSTGRES_PASSWORD JWT_SECRET QAVENO_TRIAL_SECRET"
+REQUIRED_VARS="POSTGRES_PASSWORD JWT_SECRET QAVENO_TRIAL_PRIVATE_KEY QAVENO_TRIAL_KEY_ID"
 for var in $REQUIRED_VARS; do
   if [ -z "${!var:-}" ]; then
     echo "  ✗ Missing: $var"

@@ -6,6 +6,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import * as crypto from 'crypto';
 
+import { loadTrialKeyId, loadTrialPrivateKey } from './trial-keys';
+
 import {
   Organization, OrganizationMember, OrganizationSubscription,
   SubscriptionPlan, LicenseHistory, User, Branch,
@@ -633,7 +635,6 @@ export class OwnerService {
 
   // ── Server-Authoritative Trial (Phase 35) ────────────────────────
 
-  private static readonly TRIAL_HMAC_SECRET = process.env.QAVENO_TRIAL_SECRET || 'qaveno-trial-hmac-secret-change-in-production';
   private static readonly TRIAL_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
   /** Start a 24-hour trial for an organization. Server-authoritative. */
@@ -760,7 +761,7 @@ export class OwnerService {
     return { valid: false, status: sub.status, expiresAt: null, trialToken: '' };
   }
 
-  /** Sign trial data with HMAC for offline verification. */
+  /** Sign trial data with Ed25519 (asymmetric — clients hold only the public key). */
   signTrialToken(
     organizationId: number,
     startsAt: Date,
@@ -773,21 +774,26 @@ export class OwnerService {
       end: endsAt.getTime(),
       device: deviceFingerprint,
       ts: Date.now(),
+      kid: loadTrialKeyId(),
     });
-    const hmac = crypto.createHmac('sha256', OwnerService.TRIAL_HMAC_SECRET);
-    hmac.update(payload);
-    const sig = hmac.digest('hex');
+    const sig = crypto
+      .sign(null, Buffer.from(payload, 'utf8'), loadTrialPrivateKey())
+      .toString('hex');
     return Buffer.from(JSON.stringify({ p: payload, s: sig })).toString('base64url');
   }
 
-  /** Verify a trial token's HMAC signature. */
+  /** Verify a trial token's Ed25519 signature using the public half of the signing key. */
   verifyTrialToken(token: string): { valid: boolean; data?: Record<string, unknown> } {
     try {
       const decoded = JSON.parse(Buffer.from(token, 'base64url').toString());
-      const hmac = crypto.createHmac('sha256', OwnerService.TRIAL_HMAC_SECRET);
-      hmac.update(decoded.p);
-      const expectedSig = hmac.digest('hex');
-      if (decoded.s !== expectedSig) return { valid: false };
+      const publicKey = crypto.createPublicKey(loadTrialPrivateKey());
+      const valid = crypto.verify(
+        null,
+        Buffer.from(decoded.p, 'utf8'),
+        publicKey,
+        Buffer.from(decoded.s, 'hex'),
+      );
+      if (!valid) return { valid: false };
       const data = JSON.parse(decoded.p);
       return { valid: true, data };
     } catch {

@@ -16,7 +16,12 @@ const DATA = path.join(ROOT, 'data');
 const UD1 = path.join(os.homedir(), 'AppData', 'Roaming', 'QAVENO');
 const UD2 = path.join(os.homedir(), 'AppData', 'Roaming', 'qaveno');
 const BAK = path.join(os.tmpdir(), 'qaveno-data-e2e-' + Date.now());
-const license = require('../src/main/license'); // signs trial tokens for seeding license.json
+
+/* ---- test Ed25519 signer; test public key is injected into the Electron
+       child via QAVENO_TRIAL_PUBLIC_KEY_B64 (dev runtime of trial-keys.js) ---- */
+const signer = require('./helpers/trial-signer');
+
+const license = require('../src/main/license'); // reads device fingerprint for seeding license.json
 
 let passed = 0;
 let failed = 0;
@@ -46,7 +51,7 @@ async function waitFor(pred, label, timeout = 20000) {
   let admin = null;
   let adminErrors = [];
   try {
-    app = await _electron.launch({ args: ['.'], cwd: ROOT, timeout: 90000 });
+    app = await _electron.launch({ args: ['.'], cwd: ROOT, env: { ...process.env, QAVENO_TRIAL_PUBLIC_KEY_B64: signer.TEST_PUBLIC_KEY_B64 }, timeout: 90000 });
 
     const allWindows = async () => {
       const wins = await app.windows();
@@ -77,11 +82,11 @@ async function waitFor(pred, label, timeout = 20000) {
       type: 'trial', organizationId: 1, deviceFingerprint: fp,
       startedAt: new Date(Date.now() - 1000).toISOString(),
       expiresAt: new Date(trialEnd).toISOString(),
-      trialToken: license.signToken({ org: 1, end: trialEnd, device: fp }),
+      trialToken: signer.signTrialToken({ org: 1, end: trialEnd, device: fp, ts: Date.now() }),
       lastValidatedAt: new Date().toISOString(), status: 'active', hardExpired: false,
     }, null, 2), 'utf8');
     await app.close();
-    app = await _electron.launch({ args: ['.'], cwd: ROOT, timeout: 90000 });
+    app = await _electron.launch({ args: ['.'], cwd: ROOT, env: { ...process.env, QAVENO_TRIAL_PUBLIC_KEY_B64: signer.TEST_PUBLIC_KEY_B64 }, timeout: 90000 });
     await waitFor(async () => (await allWindows()).length >= 1, 'login window (relaunch)');
     login = (await allWindows()).find(w => w.url().includes('login'));
     await waitFor(async () => await login.evaluate(() => document.getElementById('username') !== null), 'username field (relaunch)');

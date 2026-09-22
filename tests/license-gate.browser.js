@@ -34,6 +34,10 @@ const UD1 = path.join(os.homedir(), 'AppData', 'Roaming', 'QAVENO');
 const UD2 = path.join(os.homedir(), 'AppData', 'Roaming', 'qaveno');
 const BAK = path.join(os.tmpdir(), 'qaveno-license-ui-' + Date.now());
 
+/* ---- test Ed25519 signer; test public key is injected into the Electron
+       child via QAVENO_TRIAL_PUBLIC_KEY_B64 (dev runtime of trial-keys.js) ---- */
+const signer = require('./helpers/trial-signer');
+
 const license = require('../src/main/license');
 
 let passed = 0;
@@ -70,7 +74,7 @@ function trialLicense(expiresInMs, lastValidatedAgoMs) {
     deviceFingerprint: fp,
     startedAt: new Date(Date.now() - 60000).toISOString(),
     expiresAt: new Date(end).toISOString(),
-    trialToken: license.signToken({ org: 1, end, device: fp }),
+    trialToken: signer.signTrialToken({ org: 1, end, device: fp, ts: Date.now() }),
     lastValidatedAt: new Date(Date.now() - (lastValidatedAgoMs || 0)).toISOString(),
     status: 'active',
     hardExpired: false,
@@ -104,7 +108,7 @@ const writeLicenseFile = (data) => {
 /* ---- app lifecycle helpers ---- */
 
 async function boot() {
-  const app = await _electron.launch({ args: ['.'], cwd: ROOT, timeout: 90000 });
+  const app = await _electron.launch({ args: ['.'], cwd: ROOT, env: { ...process.env, QAVENO_TRIAL_PUBLIC_KEY_B64: signer.TEST_PUBLIC_KEY_B64 }, timeout: 90000 });
   const t0 = Date.now();
   while ((await kinds(app)).length < 1 && Date.now() - t0 < 30000) await sleep(200);
   return app;

@@ -23,7 +23,7 @@ export function requireProductionConfig(): void {
 
   const jwtSecret = process.env.JWT_SECRET || '';
   if (!jwtSecret || jwtSecret.length < 32) missing.push('JWT_SECRET (>=32 chars)');
-  if (!process.env.QAVENO_TRIAL_SECRET || !process.env.QAVENO_TRIAL_SECRET.trim()) missing.push('QAVENO_TRIAL_SECRET');
+  if (!process.env.QAVENO_TRIAL_PRIVATE_KEY || !process.env.QAVENO_TRIAL_PRIVATE_KEY.trim()) missing.push('QAVENO_TRIAL_PRIVATE_KEY');
   if (!process.env.CORS_ORIGINS || !process.env.CORS_ORIGINS.trim()) missing.push('CORS_ORIGINS');
 
   if (missing.length) {
@@ -56,6 +56,9 @@ export const configuration = () => {
       issuer: process.env.JWT_ISSUER || 'qaveno-backend',
     },
     swaggerEnabled: process.env.SWAGGER_ENABLED === 'true' || process.env.NODE_ENV !== 'production',
-    trialHmacSecret: process.env.QAVENO_TRIAL_SECRET || '',
+    trial: {
+      privateKey: process.env.QAVENO_TRIAL_PRIVATE_KEY || '',
+      keyId: process.env.QAVENO_TRIAL_KEY_ID?.trim() || 'prod-1',
+    },
   };
 };
